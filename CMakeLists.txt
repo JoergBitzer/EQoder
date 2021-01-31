@@ -4,7 +4,7 @@
 # `project()` command. `project()` sets up some helpful variables that describe source/binary
 # directories, and the current project version. This is a standard CMake command.
 
-project(AUDIO_PLUGIN_TEMPLATE VERSION 0.0.1)
+project(AUDIO_PLUGIN_EQODER VERSION 0.0.1)
 
 # `VST3_CATEGORIES`
 #  - Should be one or more, separated by spaces, of the following: `Fx`, `Instrument`, `Analyzer`,
@@ -29,15 +29,15 @@ juce_add_plugin(AudioPluginEQoder
     # COMPANY_NAME ...                          # Specify the name of the plugin's author
     COMPANY_NAME  "Jade Hochschule"             # Specify the name of the plugin's author
     IS_SYNTH FALSE                       # Is this a synth or an effect?
-    NEEDS_MIDI_INPUT FALSE               # Does the plugin need midi input?
+    NEEDS_MIDI_INPUT TRUE               # Does the plugin need midi input?
     NEEDS_MIDI_OUTPUT FALSE              # Does the plugin need midi output?
     # IS_MIDI_EFFECT TRUE/FALSE                 # Is this plugin a MIDI effect?
     # EDITOR_WANTS_KEYBOARD_FOCUS TRUE/FALSE    # Does the editor need keyboard focus?
-    VST3_CATEGORIES "Fx" "EQ"                        
+    VST3_CATEGORIES "Fx" "EQ" "Modulation"                      
     AU_MAIN_TYPE "kAudioUnitType_Effect"
     COPY_PLUGIN_AFTER_BUILD TRUE               # Should the plugin be installed to a default location after building?
     PLUGIN_MANUFACTURER_CODE IHAJ               # A four-character manufacturer id with at least one upper-case character
-    PLUGIN_CODE tep1                            # A unique four-character plugin id with at least one upper-case character
+    PLUGIN_CODE EQo1                            # A unique four-character plugin id with at least one upper-case character
     FORMATS AU VST3 Standalone                  # The formats to build. Other valid formats are: AAX Unity VST AU AUv3
     PRODUCT_NAME "EQoder")     # The name of the final executable, which can differ from the target name
 #
