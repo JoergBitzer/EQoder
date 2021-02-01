@@ -60,6 +60,8 @@ target_sources(AudioPluginEQoder
     PRIVATE
         PluginEditor.cpp
         PluginProcessor.cpp
+        DecoupledPeakEQ.cpp
+        EqoderFilterUnit.cpp
         ${TGMLIBCPPS}
         )
 

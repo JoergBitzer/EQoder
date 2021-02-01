@@ -38,7 +38,8 @@ public:
     void reset();
     void setGain(double newGain);
     void setGaindb(double newGain);
-    void setQ(double newQ);
+    // void setQ(double newQ);
+    void setBandwidth(double BW_Hz);
     void setFreqency(double newFreq);
     void setSamplerate(double fs);
 
@@ -47,9 +48,13 @@ private:
     double m_freq;
     double m_gain;
     double m_Q;
+    double m_BW;
 
     double m_state1,m_state2;
     double m_k1,m_k2;
     void computeCoeffs();
+    void computek1Freq();
+    void setBWviaQ();
+    void computek2Bandwidth();
 
 };
