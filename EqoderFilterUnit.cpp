@@ -12,6 +12,19 @@ m_maxGainf0(10.0),m_maxGainfend(1.0), m_gainform(1.0), m_freqspread(0.0)
     setFundamentalFrequency(m_f0);
     setGains();
     setFilters();
+
+    // dynmaics
+    m_env.setSamplerate(m_fs);
+    m_env.setDelayTime(0.0);
+    m_env.setAttackRate(100.0);
+    m_env.setDecayRate(500.0);
+    m_env.setSustainLevel(0.0);
+    m_env.setHoldTime(0.0);
+    m_env.setReleaseRate(500.0);
+    
+    // kust for debugging
+    m_env.NoteOn();
+
 }
 EQoderFilterUnit::EQoderFilterUnit(double fs)
 :m_nroffilters(5),m_fs(fs),m_Q(4.0),m_f0(1000.0),m_bwspread(0.0),
@@ -23,6 +36,16 @@ m_maxGainf0(10.0),m_maxGainfend(1.0), m_gainform(1.0), m_freqspread(0.0)
     setFundamentalFrequency(m_f0);
     setGains();
     setFilters();
+    // dynmaics
+    m_env.setSamplerate(m_fs);
+    m_env.setDelayTime(0.0);
+    m_env.setAttackRate(100.0);
+    m_env.setDecayRate(500.0);
+    m_env.setSustainLevel(0.0);
+    m_env.setHoldTime(0.0);
+    m_env.setReleaseRate(500.0);
+    // just for debugging
+    m_env.NoteOn();
 }
 EQoderFilterUnit::~EQoderFilterUnit()
 {
@@ -38,13 +61,15 @@ void EQoderFilterUnit::setSamplerate(double fs)
         onefilter.setSamplerate(m_fs);
     }
     setFilters();
-
+    m_env.setSamplerate(m_fs);
 }
 int EQoderFilterUnit::processData(std::vector<double>& data)
 {
+    m_envdata.resize(data.size());
+    m_env.getData(m_envdata);
     for (auto kk = 0u; kk < m_nroffilters; ++kk)
     {
-        m_filters[kk].processData(data);
+        m_filters[kk].processDataWithEnvelope(data,m_envdata);
     }
 
     return 0;
@@ -95,7 +120,7 @@ void EQoderFilterUnit::setFreqSpread(double freqspread)
 
 void EQoderFilterUnit::checknroffilters()
 {
-    int maxtoNyquist = int(0.5*m_fs/(m_f0*pow(2.0,m_freqspread)))-1; //-1 for security
+    int maxtoNyquist = int(0.5*m_fs/(m_f0*pow(2.0,m_freqspread))); //-1 for security
 
     if (m_nroffilters>maxtoNyquist)
         m_nroffilters = maxtoNyquist;
@@ -108,7 +133,8 @@ void EQoderFilterUnit::setFilters()
 {
     for (auto kk = 0u; kk < m_filters.size(); ++kk)
     {
-        m_filters[kk].setFreqency(m_f0*pow(2.0,m_freqspread)*(kk+1));
+        // m_filters[kk].setFreqency(m_f0*pow(2.0,m_freqspread)*(kk+1));
+        m_filters[kk].setFreqency(m_f0 + m_f0*pow(2.0,m_freqspread)*(kk));
         m_filters[kk].setBandwidth(m_Bandwidths[kk]);
     }
 }

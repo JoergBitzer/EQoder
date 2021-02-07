@@ -45,6 +45,32 @@ int DecoupledPeakEQ::processData(std::vector<double>& data)
 
     return 0;
 }
+int  DecoupledPeakEQ::processDataWithEnvelope(std::vector<double>& data,std::vector<double>& envdata)
+{
+     for (auto kk = 0u; kk < data.size(); ++kk)
+    //for(auto in : data)
+    {
+        // allpass first
+        // k2 first
+        double in = data[kk];
+        double upper2 = m_k2*(in - m_state2);
+        // k1
+        double out2 = in + upper2;
+        double upper1 = m_k1*(out2 - m_state1);
+        double out = m_state2 + upper2;
+        m_state2 = upper1 + m_state1;
+        m_state1 = upper1 + out2;
+
+        // gain
+        data[kk] = 0.5*(in + out) + 0.5*(((m_gain-1.0)*envdata[kk])+1.0) *(in - out);
+
+    }
+
+    return 0;   
+}
+
+
+
 // DecoupledPeakEQ::processData(AudioBlock audio); // alternative with Juce AudioBlock
 void DecoupledPeakEQ::reset()
 {

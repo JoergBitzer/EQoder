@@ -2,6 +2,7 @@
 #include <vector>
 #include "DecoupledPeakEQ.h"
 #include "ValueMapper.h"
+#include "Envelope.h"
 
 class EQoderFilterUnit
 {
@@ -22,6 +23,10 @@ public:
     void setBWSpread(double bwspread);// 0..1
     void setQ(double Q);
     void setFreqSpread(double freqspread); // -4...4
+
+    // Dynamics
+    Envelope m_env;
+    std::vector<double> m_envdata;
 
 private:
     const int m_maxnroffilters = 20;
