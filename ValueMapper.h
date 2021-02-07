@@ -1,3 +1,14 @@
+/**
+ * @file ValueMapper.h
+ * @author J. Bitzer @ Jade Hochschule
+ * @brief a small header-based class to map values (interpolate) between two points
+ * the form is controlled by a val^beta with 0 < beta < oo 
+ * @version 0.1
+ * @date 2021-02-01
+ * 
+ * @copyright Copyright (c) 2021
+ * 
+ */
 #pragma once
 #include <cmath>
 class ValueMapper
@@ -27,5 +38,5 @@ private:
     
     double m_inversediffx;
     double m_diffy;
-    //double m_minx;
+
 };

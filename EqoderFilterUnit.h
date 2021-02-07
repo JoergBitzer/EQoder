@@ -21,7 +21,7 @@ public:
     // parameter
     void setBWSpread(double bwspread);// 0..1
     void setQ(double Q);
-
+    void setFreqSpread(double freqspread); // -4...4
 
 private:
     const int m_maxnroffilters = 20;
@@ -33,6 +33,7 @@ private:
     double m_gainform;
     int m_nroffilters;
     double m_bwspread;
+    double m_freqspread;
     std::vector<DecoupledPeakEQ> m_filters;
     std::vector<double> m_Bandwidths;
     std::vector<double> m_Gains;
