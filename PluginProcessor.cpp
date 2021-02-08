@@ -106,8 +106,10 @@ void EQoderAudioProcessor::setCurrentProgram (int index)
 
 const juce::String EQoderAudioProcessor::getProgramName (int index)
 {
-    juce::ignoreUnused (index);
-    return {};
+    if (index == 0)
+        return "Init";
+    //juce::ignoreUnused (index);
+    //return {};
 }
 
 void EQoderAudioProcessor::changeProgramName (int index, const juce::String& newName)
@@ -122,6 +124,7 @@ void EQoderAudioProcessor::prepareToPlay (double sampleRate, int samplesPerBlock
     // initialisation that you need..
     juce::ignoreUnused (samplesPerBlock);
     m_fs = sampleRate;
+    m_Eqoder.prepareToPlay(sampleRate,samplesPerBlock);
 }
 
 void EQoderAudioProcessor::releaseResources()
@@ -155,33 +158,20 @@ bool EQoderAudioProcessor::isBusesLayoutSupported (const BusesLayout& layouts) c
 void EQoderAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer,
                                               juce::MidiBuffer& midiMessages)
 {
+#if WITH_MIDIKEYBOARD  
+	m_keyboardState.processNextMidiBuffer(midiMessages, 0, buffer.getNumSamples(), true);
+#else
     juce::ignoreUnused (midiMessages);
-
+#endif
     juce::ScopedNoDenormals noDenormals;
-    auto totalNumInputChannels  = getTotalNumInputChannels();
-    auto totalNumOutputChannels = getTotalNumOutputChannels();
-
-    // In case we have more outputs than inputs, this code clears any output
-    // channels that didn't contain input data, (because these aren't
-    // guaranteed to be empty - they may contain garbage).
-    // This is here to avoid people getting screaming feedback
-    // when they first compile a plugin, but obviously you don't need to keep
-    // this code if your algorithm always overwrites all the output channels.
-    for (auto i = totalNumInputChannels; i < totalNumOutputChannels; ++i)
-        buffer.clear (i, 0, buffer.getNumSamples());
-
-    // This is the place where you'd normally do the guts of your plugin's
-    // audio processing...
-    // Make sure to reset the state if your inner loop is processing
-    // the samples and the outer loop is handling the channels.
-    // Alternatively, you can process the samples with the channels
-    // interleaved by keeping the same state.
-    for (int channel = 0; channel < totalNumInputChannels; ++channel)
-    {
-        auto* channelData = buffer.getWritePointer (channel);
-        juce::ignoreUnused (channelData);
-        // ..do something to the data...
-    }
+    
+    // Here the plugin
+    //m_protect.enter();
+    m_Eqoder.processBlock(buffer,midiMessages);
+#if WITH_MIDIKEYBOARD     
+    midiMessages.clear();
+#endif
+    //m_protect.exit();
 }
 
 //==============================================================================

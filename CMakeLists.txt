@@ -62,6 +62,7 @@ target_sources(AudioPluginEQoder
         PluginProcessor.cpp
         DecoupledPeakEQ.cpp
         EqoderFilterUnit.cpp
+        Eqoder.cpp
         ${TGMLIBCPPS}
         )
 

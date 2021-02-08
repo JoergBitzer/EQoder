@@ -2,6 +2,10 @@
 #include <vector>
 #include <juce_audio_processors/juce_audio_processors.h>
 #include "PresetHandler.h"
+
+// Here the plugin things
+#include "Eqoder.h"
+
 //==============================================================================
 class EQoderAudioProcessor  : public juce::AudioProcessor
 {
@@ -54,6 +58,10 @@ private:
 #if WITH_MIDIKEYBOARD    
     MidiKeyboardState m_keyboardState;
 #endif
+
+    // plugin stuff
+    Eqoder m_Eqoder;
+
     //==============================================================================
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (EQoderAudioProcessor)
 };

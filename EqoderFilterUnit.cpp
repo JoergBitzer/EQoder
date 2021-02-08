@@ -16,10 +16,10 @@ m_maxGainf0(10.0),m_maxGainfend(1.0), m_gainform(1.0), m_freqspread(0.0)
     // dynmaics
     m_env.setSamplerate(m_fs);
     m_env.setDelayTime(0.0);
-    m_env.setAttackRate(100.0);
+    m_env.setAttackRate(10.0);
     m_env.setDecayRate(500.0);
     m_env.setSustainLevel(0.0);
-    m_env.setHoldTime(0.0);
+    m_env.setHoldTime(1000.0);
     m_env.setReleaseRate(500.0);
     
     // kust for debugging
@@ -42,16 +42,22 @@ m_maxGainf0(10.0),m_maxGainfend(1.0), m_gainform(1.0), m_freqspread(0.0)
     m_env.setAttackRate(100.0);
     m_env.setDecayRate(500.0);
     m_env.setSustainLevel(0.0);
-    m_env.setHoldTime(0.0);
+    m_env.setHoldTime(2000.0);
     m_env.setReleaseRate(500.0);
     // just for debugging
-    m_env.NoteOn();
+
 }
 EQoderFilterUnit::~EQoderFilterUnit()
 {
 
 }
-
+void EQoderFilterUnit::reset()
+{
+    for (auto onefilter : m_filters)
+    {
+         onefilter.reset();
+    }
+}
 void EQoderFilterUnit::setSamplerate(double fs)
 {
     m_fs = fs;
@@ -92,6 +98,7 @@ void EQoderFilterUnit::setFundamentalFrequency(double freq)
     }
 
     setFilters();
+    m_env.NoteOn();           
 }
 
 void EQoderFilterUnit::setBWSpread(double bwspread)
@@ -153,7 +160,6 @@ void EQoderFilterUnit::setFilters()
         double gain_dB = m_valmap.getValue(m_f0*(kk+1));
         double gain = pow(10.0,gain_dB/20.0);
         m_Gains[kk] = gain;
-    // Todo : just for debugging. final this is for the envelope
         m_filters[kk].setGain(gain);
     }
 

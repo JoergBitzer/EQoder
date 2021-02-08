@@ -13,6 +13,9 @@ public:
 
     void setSamplerate(double fs);
     int processData(std::vector<double>& data);
+    void reset();
+
+    
     void setNrOfFilters(int nroffilters);
     void setMaxGainf0(double maxGain_dB){m_maxGainf0 = maxGain_dB;setGains();};
     void setMaxGainfend(double maxGain_dB){m_maxGainfend = maxGain_dB;setGains();};
@@ -27,6 +30,7 @@ public:
     // Dynamics
     Envelope m_env;
     std::vector<double> m_envdata;
+
 
 private:
     const int m_maxnroffilters = 20;
