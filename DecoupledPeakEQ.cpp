@@ -1,19 +1,19 @@
 #include "DecoupledPeakEQ.h"
 
 DecoupledPeakEQ::DecoupledPeakEQ()
-:m_fs(44100.0),m_freq(1000.0),m_gain(4.0),m_Q(1.0)
+:m_fs(44100.0),m_freq(1000.0),m_gain(4.0),m_Q(1.0),m_BW(100.0)
 {
     computeCoeffs();
     reset();
 }
 DecoupledPeakEQ::DecoupledPeakEQ(double fs)
-:m_fs(fs),m_freq(1000.0),m_gain(1.0),m_Q(1.0)
+:m_fs(fs),m_freq(1000.0),m_gain(1.0),m_Q(1.0),m_BW(100.0)
 {
     computeCoeffs();
     reset();
 }
 DecoupledPeakEQ::DecoupledPeakEQ(double fs, double freq, double gain, double Q)
-:m_fs(fs),m_freq(freq),m_gain(gain),m_Q(Q)
+:m_fs(fs),m_freq(freq),m_gain(gain),m_Q(Q),m_BW(100.0)
 {
     computeCoeffs();
     reset();
@@ -45,7 +45,7 @@ int DecoupledPeakEQ::processData(std::vector<double>& data)
 
     return 0;
 }
-int  DecoupledPeakEQ::processDataWithEnvelope(std::vector<double>& data,std::vector<double>& envdata)
+int  DecoupledPeakEQ::processDataWithEnvelope(std::vector<double>& data,const std::vector<double>& envdata)
 {
      for (auto kk = 0u; kk < data.size(); ++kk)
     //for(auto in : data)

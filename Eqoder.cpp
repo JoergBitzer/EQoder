@@ -3,37 +3,28 @@
 
 Eqoder::Eqoder()
 {
-	for (int kk = 0; kk < g_NrOfFilterUnits; kk++)
+	m_unitCounter = 0;
+	//m_pfilterunit = std::make_unique<EQoderFilterUnit[]> (g_NrOfFilterUnits);
+	for (int kk = 0; kk < g_NrOfFilterUnits; ++kk)
 	{
-	    m_filterunits[kk].setFundamentalFrequency(2000.0);
-    	m_filterunits[kk].setNrOfFilters(8);
-    	m_filterunits[kk].setBWSpread(0.1);
-    	m_filterunits[kk].setQ(30.0);
-    	// Uebergang der Harmonischen
-    	m_filterunits[kk].setMaxGainf0(20.f);
-    	m_filterunits[kk].setMaxGainfend(5.f);
-    	m_filterunits[kk].setGainForm(1.0);
-
-    	// ermöglicht virtuellen Pitch, wenn < 1.0 (alle nicht 2er Potenzen sind inharmonisch)
-    	m_filterunits[kk].setFreqSpread(0.0);
-  
+		m_pointerPool.add(std::unique_ptr<EQoderFilterUnit>(new EQoderFilterUnit()));
+		// auto oneunitpointer = std::make_unique<EQoderFilterUnit>(); 
+		// m_pfilterunit.push_back(oneunitpointer);
+		// m_pointerPool.add(m_pfilterunit[kk]);
+		//m_pfilterunit[kk] = std::unique_ptr<EQoderFilterUnit>(new EQoderFilterUnit());
 	}
-
 }
 Eqoder::~Eqoder()
 {
 
 }
 
-void Eqoder::prepareToPlay (double sampleRate, int samplesPerBlock)
+void Eqoder::prepareToPlay (double sampleRate, int samplesPerBlock,int nrofchannels)
 {
     m_fs = sampleRate;
     m_maxSamples = samplesPerBlock;
+	m_nrOfChannels = nrofchannels;
 
-	for (int kk = 0; kk < g_NrOfFilterUnits; kk++)
-	{
-	    m_filterunits[kk].reset();
-	}
 	m_data.clear();
 }
 void Eqoder::processBlock (juce::AudioBuffer<float>& data, juce::MidiBuffer& mididata)
@@ -46,12 +37,39 @@ void Eqoder::processBlock (juce::AudioBuffer<float>& data, juce::MidiBuffer& mid
 			 MidiMessage msg= metadata.getMessage();
 			 if(msg.isNoteOn())
 			 {
-				double freqNote = msg.getMidiNoteInHertz(msg.getNoteNumber());
-
-				// debug
-				m_filterunits[0].setFundamentalFrequency(freqNote);
+				int midiNoteNr = msg.getNoteNumber();
+				float Velocity = 1.0/127.0 * msg.getVelocity();
+				double freqNote = msg.getMidiNoteInHertz(midiNoteNr);
+				if (m_midifilterunitmap.count(midiNoteNr)) // note already on, re attack
+				{
+					//int unitnr = m_midifilterunitmap[midiNoteNr];
+					m_midifilterunitmap[midiNoteNr]->setFundamentalFrequency(freqNote,Velocity);
+				}
+				else
+				{
+					m_unitCounter++;
+					if (m_unitCounter < g_NrOfFilterUnits) // Resources are available
+					{
+						m_midifilterunitmap[midiNoteNr] = m_pointerPool.acquire();
+					}
+					else // Steeling
+					{
+						m_midifilterunitmap.erase(m_softestNote);
+						m_midifilterunitmap[midiNoteNr] = m_pointerPool.acquire();
+						
+					}
+					setParameterForNewFilterUnit(midiNoteNr);
+					m_midifilterunitmap[midiNoteNr]->setFundamentalFrequency(freqNote,Velocity);
+				}
 			 }
-
+ 			 if(msg.isNoteOff())
+			 {
+ 				int midiNoteNr = msg.getNoteNumber();
+				if (m_midifilterunitmap.count(midiNoteNr)) // note already on, re attack
+				{
+					m_midifilterunitmap[midiNoteNr]->NoteOff();
+				}
+			 }
 		 }
 	}   
             
@@ -59,30 +77,76 @@ void Eqoder::processBlock (juce::AudioBuffer<float>& data, juce::MidiBuffer& mid
     m_data.resize(data.getNumSamples());
     // auto totalNumInputChannels  = 
     auto totalNrChannels = data.getNumChannels();;
-
-	//for (long unsigned int channel = 0; channel < totalNrChannels; ++channel)
-    int channel = 0;
+    m_data.resize(totalNrChannels);
+	for (long unsigned int channel = 0; channel < totalNrChannels; ++channel)
 	{
+		m_data[channel].resize(data.getNumSamples());
         auto* channelData = data.getWritePointer (channel);
 
         // ..do something to the data...
         for (auto idx = 0u; idx < data.getNumSamples(); idx++)
         {
-            m_data[idx] = channelData[idx];
+            m_data[channel][idx] = channelData[idx];
         }
+	}
+	m_protect.enter();
+	
+	float minLevel = 1.f;
+	int notestostop[g_NrOfFilterUnits];
+	int notestopcounter(0);
+	for (auto onefilterunit : m_midifilterunitmap )
+	{
+		onefilterunit.second->processData(m_data);
+		Envelope::envelopePhases phase;
+		float Level = onefilterunit.second->getEnvelopeStatus(phase);
+		if (phase == Envelope::envelopePhases::Off)
+		{
+			notestostop[notestopcounter] = onefilterunit.first;
+			notestopcounter++;
+		}
+		if (Level< minLevel)
+		{
+			minLevel = Level;
+			m_softestNote = onefilterunit.first;
+		}
+	}
+	size_t elems;
+	for (auto kk = 0 ; kk < notestopcounter; ++kk)
+	{
+		elems = m_pointerPool.size();
+		m_midifilterunitmap.erase(notestostop[kk]);
+		m_unitCounter--;
+		elems = m_pointerPool.size();
+	}
+	m_protect.exit();
         
-		m_protect.enter();
-		m_filterunits[0].processData(m_data);
-		m_protect.exit();
-        
+	for (long unsigned int channel = 0; channel < totalNrChannels; ++channel)
+	{
+        auto* channelData = data.getWritePointer (channel);
 		
 		for (auto idx = 0u; idx < data.getNumSamples(); idx++)
         {
-            channelData[idx] = m_data[idx];
+            channelData[idx] = m_data[channel][idx];
         }
 	}
 
 }
+void Eqoder::setParameterForNewFilterUnit(int key)
+{
+	m_midifilterunitmap[key]->setSamplerate(m_fs);
+	m_midifilterunitmap[key]->setNrOfFilters(8);
+	m_midifilterunitmap[key]->setBWSpread(0.1);
+	m_midifilterunitmap[key]->setQ(30.0);
+	// Uebergang der Harmonischen
+	m_midifilterunitmap[key]->setMaxGainf0(20.f);
+	m_midifilterunitmap[key]->setMaxGainfend(5.f);
+	m_midifilterunitmap[key]->setGainForm(1.0);
+
+	// ermöglicht virtuellen Pitch, wenn < 1.0 (alle nicht 2er Potenzen sind inharmonisch)
+	m_midifilterunitmap[key]->setFreqSpread(0.0);
+}
+
+
 
 int EqoderParameter::addParameter(std::vector < std::unique_ptr<RangedAudioParameter>>& paramVector)
 {

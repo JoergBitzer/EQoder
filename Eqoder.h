@@ -5,25 +5,34 @@
 
 #include "JuceHeader.h"
 #include "EqoderFilterUnit.h"
+#include "PointerPool.h"
 
 const int g_NrOfFilterUnits(8);
-
+const int g_maxChannels(8);
 class Eqoder
 {
 public:
     Eqoder();
     ~Eqoder();
 
-    void prepareToPlay (double sampleRate, int samplesPerBlock);
+    void prepareToPlay (double sampleRate, int samplesPerBlock, int nrofchannels = 2);
     void processBlock (juce::AudioBuffer<float>&, juce::MidiBuffer&);
 
 
 private:
+    int m_nrOfChannels;
     CriticalSection m_protect;
-    std::vector<double> m_data;	
+    std::vector<std::vector<double>> m_data;	
     double m_fs;
     int m_maxSamples;
-    EQoderFilterUnit m_filterunits[g_NrOfFilterUnits];
+    
+    // filter pool
+    int m_unitCounter;
+    // std::vector<std::unique_ptr<EQoderFilterUnit>> m_pfilterunit;
+   	std::map <int, std::shared_ptr<EQoderFilterUnit>> m_midifilterunitmap;
+    PointerPool<EQoderFilterUnit> m_pointerPool;
+    int m_softestNote;
+    void setParameterForNewFilterUnit(int key);
 
 };
 

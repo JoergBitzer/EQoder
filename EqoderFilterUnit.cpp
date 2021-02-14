@@ -3,9 +3,12 @@
 
 EQoderFilterUnit::EQoderFilterUnit()
 :m_nroffilters(5),m_fs(44100.0),m_Q(20.0),m_f0(2000.0),m_bwspread(1.0),
-m_maxGainf0(10.0),m_maxGainfend(1.0), m_gainform(1.0), m_freqspread(0.0)
+m_maxGainf0(10.0),m_maxGainfend(1.0), m_gainform(1.0), m_freqspread(0.0), m_nrofchannels(2)
 {
-    m_filters.resize(m_maxnroffilters);
+    m_filters.resize(m_maxnrofchannels);
+    for (auto kk = 0u; kk < m_filters.size(); ++kk)
+        m_filters[kk].resize(m_maxnroffilters);
+
     m_Bandwidths.resize(m_maxnroffilters);
     m_Gains.resize(m_maxnroffilters);
 
@@ -22,15 +25,20 @@ m_maxGainf0(10.0),m_maxGainfend(1.0), m_gainform(1.0), m_freqspread(0.0)
     m_env.setHoldTime(1000.0);
     m_env.setReleaseRate(500.0);
     
+    reset();
     // kust for debugging
-    m_env.NoteOn();
+    // m_env.NoteOn();
 
 }
 EQoderFilterUnit::EQoderFilterUnit(double fs)
 :m_nroffilters(5),m_fs(fs),m_Q(4.0),m_f0(1000.0),m_bwspread(0.0),
-m_maxGainf0(10.0),m_maxGainfend(1.0), m_gainform(1.0), m_freqspread(0.0)
+m_maxGainf0(10.0),m_maxGainfend(1.0), m_gainform(1.0), m_freqspread(0.0), m_nrofchannels(2)
 {
-    m_filters.resize(m_maxnroffilters);
+    m_filters.resize(m_maxnrofchannels);
+    for (auto kk = 0u; kk < m_filters.size(); ++kk)
+        m_filters[kk].resize(m_maxnroffilters);
+
+
     m_Bandwidths.resize(m_maxnroffilters);
     m_Gains.resize(m_maxnroffilters);
     setFundamentalFrequency(m_f0);
@@ -45,6 +53,7 @@ m_maxGainf0(10.0),m_maxGainfend(1.0), m_gainform(1.0), m_freqspread(0.0)
     m_env.setHoldTime(2000.0);
     m_env.setReleaseRate(500.0);
     // just for debugging
+    reset();
 
 }
 EQoderFilterUnit::~EQoderFilterUnit()
@@ -53,31 +62,38 @@ EQoderFilterUnit::~EQoderFilterUnit()
 }
 void EQoderFilterUnit::reset()
 {
-    for (auto onefilter : m_filters)
+    for (auto onefiltervec : m_filters)
     {
-         onefilter.reset();
+        for (auto onefilter : onefiltervec)
+            onefilter.reset();
     }
+    
 }
 void EQoderFilterUnit::setSamplerate(double fs)
 {
     m_fs = fs;
     checknroffilters();
-    for (auto onefilter : m_filters)
+    for (auto onefiltervec : m_filters)
     {
-        onefilter.setSamplerate(m_fs);
+        for (auto onefilter : onefiltervec)
+            onefilter.setSamplerate(m_fs);
     }
     setFilters();
     m_env.setSamplerate(m_fs);
 }
-int EQoderFilterUnit::processData(std::vector<double>& data)
+int EQoderFilterUnit::processData(std::vector<std::vector<double>>& data)
 {
-    m_envdata.resize(data.size());
+    // one envelope for all channels
+    m_envdata.resize(data[0].size());
     m_env.getData(m_envdata);
-    for (auto kk = 0u; kk < m_nroffilters; ++kk)
-    {
-        m_filters[kk].processDataWithEnvelope(data,m_envdata);
-    }
 
+    for (auto cc = 0u; cc < data.size(); ++cc)
+    {
+        for (auto kk = 0u; kk < m_nroffilters; ++kk)
+        {
+            m_filters[cc][kk].processDataWithEnvelope(data[cc],m_envdata);
+        }
+    }
     return 0;
 }
 void EQoderFilterUnit::setNrOfFilters(int nroffilters)
@@ -87,7 +103,7 @@ void EQoderFilterUnit::setNrOfFilters(int nroffilters)
 
 }
 
-void EQoderFilterUnit::setFundamentalFrequency(double freq)
+void EQoderFilterUnit::setFundamentalFrequency(double freq, double Velocity)
 {
     m_f0 = freq;
     checknroffilters();
@@ -98,7 +114,8 @@ void EQoderFilterUnit::setFundamentalFrequency(double freq)
     }
 
     setFilters();
-    m_env.NoteOn();           
+    m_env.setMaxLevel(Velocity);
+    m_env.NoteOn();
 }
 
 void EQoderFilterUnit::setBWSpread(double bwspread)
@@ -138,11 +155,14 @@ void EQoderFilterUnit::checknroffilters()
 }
 void EQoderFilterUnit::setFilters()
 {
-    for (auto kk = 0u; kk < m_filters.size(); ++kk)
+    for (auto cc = 0u; cc < m_filters.size(); ++cc)
     {
-        // m_filters[kk].setFreqency(m_f0*pow(2.0,m_freqspread)*(kk+1));
-        m_filters[kk].setFreqency(m_f0 + m_f0*pow(2.0,m_freqspread)*(kk));
-        m_filters[kk].setBandwidth(m_Bandwidths[kk]);
+        for (auto kk = 0u; kk < m_filters[cc].size(); ++kk)
+        {
+            // m_filters[kk].setFreqency(m_f0*pow(2.0,m_freqspread)*(kk+1));
+            m_filters[cc][kk].setFreqency(m_f0 + m_f0*pow(2.0,m_freqspread)*(kk));
+            m_filters[cc][kk].setBandwidth(m_Bandwidths[kk]);
+        }
     }
 }
  void EQoderFilterUnit::setGains()
@@ -152,15 +172,16 @@ void EQoderFilterUnit::setFilters()
      m_valmap.setForm(m_gainform);
      m_valmap.setx1(m_f0);
      m_valmap.setx2(m_f0*m_nroffilters);
-
-
-  
-    for (auto kk = 0u; kk<m_Gains.size();++kk)
+ 
+    for (auto cc = 0u; cc < m_filters.size(); ++cc)
     {
-        double gain_dB = m_valmap.getValue(m_f0*(kk+1));
-        double gain = pow(10.0,gain_dB/20.0);
-        m_Gains[kk] = gain;
-        m_filters[kk].setGain(gain);
+        for (auto kk = 0u; kk < m_filters[cc].size(); ++kk)
+        {
+            double gain_dB = m_valmap.getValue(m_f0*(kk+1));
+            double gain = pow(10.0,gain_dB/20.0);
+            m_Gains[kk] = gain;
+            m_filters[cc][kk].setGain(gain);
+        }
     }
 
  }
