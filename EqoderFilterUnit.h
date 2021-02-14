@@ -44,7 +44,7 @@ public:
     float getEnvelopeStatus (Envelope::envelopePhases& envphase)
     {
         envphase = m_env.getEnvelopeStatus();
-        return m_envdata.back();
+        return m_envdata.back()*m_velocity;
     }
 
 private:
@@ -59,6 +59,7 @@ private:
     double m_gainform;
     double m_bwspread;
     double m_freqspread;
+    double m_velocity;
     std::vector<std::vector<DecoupledPeakEQ>> m_filters;
     std::vector<double> m_Bandwidths;
     std::vector<double> m_Gains;
