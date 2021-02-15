@@ -25,13 +25,7 @@ EQoderAudioProcessor::EQoderAudioProcessor()
         [](const String& text) {return text.getFloatValue(); }));
 //*/
     // this is just a placeholder (necessary for compiling/testing the template)
-    m_paramVector.push_back(std::make_unique<AudioParameterFloat>("ExampeID",
-        "Exampple Name",
-        NormalisableRange<float>(1.f, 2.f),
-        1.5f,
-        "unitname",
-        AudioProcessorParameter::genericParameter));
-    
+    m_eqoderparamter.addParameter(m_paramVector);
     m_parameterVTS = std::make_unique<AudioProcessorValueTreeState>(*this, nullptr, Identifier("FiltarborVTS"),
         AudioProcessorValueTreeState::ParameterLayout(m_paramVector.begin(), m_paramVector.end()));
 
@@ -43,6 +37,9 @@ EQoderAudioProcessor::EQoderAudioProcessor()
     // m_presets.addCategory(StringArray("Unknown", "Soft", "Medium", "Hard", "Experimental"));
     // m_presets.addCategory(JadeSynthCategories);
 	m_presets.loadfromFileAllUserPresets();    
+
+    m_Eqoder.prepareParameter(m_parameterVTS);
+
 }
 
 EQoderAudioProcessor::~EQoderAudioProcessor()

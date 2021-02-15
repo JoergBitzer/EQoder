@@ -114,7 +114,8 @@ void EQoderFilterUnit::setFundamentalFrequency(double freq, double Velocity)
     }
 
     setFilters();
-    m_env.setMaxLevel(Velocity);
+    m_velocity = Velocity;
+    m_env.setMaxLevel(m_velocity);
     m_env.NoteOn();
 }
 

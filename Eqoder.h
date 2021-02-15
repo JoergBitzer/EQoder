@@ -9,6 +9,16 @@
 
 const int g_NrOfFilterUnits(8);
 const int g_maxChannels(8);
+
+class EqoderParameter
+{
+public:
+	int addParameter(std::vector < std::unique_ptr<RangedAudioParameter>>& paramVector);
+
+public:
+    std::atomic<float>* m_nrOfFilter;
+};
+
 class Eqoder
 {
 public:
@@ -18,7 +28,9 @@ public:
     void prepareToPlay (double sampleRate, int samplesPerBlock, int nrofchannels = 2);
     void processBlock (juce::AudioBuffer<float>&, juce::MidiBuffer&);
 
-
+    
+    void prepareParameter(std::unique_ptr<AudioProcessorValueTreeState>&  vts);
+ 
 private:
     int m_nrOfChannels;
     CriticalSection m_protect;
@@ -28,18 +40,20 @@ private:
     
     // filter pool
     int m_unitCounter;
-    // std::vector<std::unique_ptr<EQoderFilterUnit>> m_pfilterunit;
+
    	std::map <int, std::shared_ptr<EQoderFilterUnit>> m_midifilterunitmap;
     PointerPool<EQoderFilterUnit> m_pointerPool;
     int m_softestNote;
     void setParameterForNewFilterUnit(int key);
 
+    // parameter handling
+    EqoderParameter m_eqoderparamter;
 };
 
 const struct
 {
 	const std::string ID = "NrOfFilters";
-	std::string name = "Number of Harmonics";
+	std::string name = "Number of Filters";
 	std::string unitName = "";
 	float minValue = 1.f;
 	float maxValue = 20.f;
@@ -49,12 +63,6 @@ const struct
 
 
 
-class EqoderParameter
-{
-public:
-	int addParameter(std::vector < std::unique_ptr<RangedAudioParameter>>& paramVector);
-
-};
 
 class EqoderParameterComponent : public Component
 {
