@@ -154,8 +154,8 @@ void Eqoder::updateParameter()
 void Eqoder::setParameterForNewFilterUnit(int key)
 {
 	m_midifilterunitmap[key]->setSamplerate(m_fs);
-//	m_midifilterunitmap[key]->setNrOfFilters(m_eqoderparamter.m_nrOfFilterOld);
-	m_midifilterunitmap[key]->setNrOfFilters(8);
+	m_midifilterunitmap[key]->setNrOfFilters(m_eqoderparamter.m_nrOfFilterOld);
+//	m_midifilterunitmap[key]->setNrOfFilters(8);
 	m_midifilterunitmap[key]->setBWSpread(0.1);
 	m_midifilterunitmap[key]->setQ(30.0);
 	// Uebergang der Harmonischen
@@ -170,6 +170,7 @@ void Eqoder::prepareParameter(std::unique_ptr<AudioProcessorValueTreeState>& vts
 {
 	// m_vts = vts;
     m_eqoderparamter.m_nrOfFilter = vts->getRawParameterValue(paramEqoderNrOfFilters.ID);
+	m_eqoderparamter.m_nrOfFilterOld = 1;
 }
 
 
@@ -189,9 +190,9 @@ int EqoderParameter::addParameter(std::vector < std::unique_ptr<RangedAudioParam
 }
 
 EqoderParameterComponent::EqoderParameterComponent(AudioProcessorValueTreeState& vts)
-:m_vts(vts), somethingChanged(nullptr)
+:m_vts(vts),somethingChanged(nullptr)
 {
-/*	m_delayLabel.setText("Delay", NotificationType::dontSendNotification);
+	/*	m_delayLabel.setText("Delay", NotificationType::dontSendNotification);
 	addAndMakeVisible(m_delayLabel);
 	m_delaySlider.setSliderStyle(Slider::SliderStyle::LinearHorizontal);
 	m_delaySlider.setTextBoxStyle(Slider::TextEntryBoxPosition::TextBoxAbove, true, 80, 20);

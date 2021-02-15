@@ -47,6 +47,15 @@ public:
         return m_envdata.back()*m_velocity;
     }
 
+    // Envelope
+    void setDelayTime(double del_ms){m_env.setDelayTime(del_ms);};
+	void setAttackRate(double att_ms){m_env.setAttackRate(att_ms);};
+	void setHoldTime(double hold_ms){m_env.setHoldTime(hold_ms);};;
+	void setDecayRate(double dec_ms){m_env.setDecayRate(dec_ms);};;
+	void setSustainLevel(double level){m_env.setSustainLevel(level);};;
+	void setReleaseRate(double rel_ms){m_env.setReleaseRate(rel_ms);};;
+	void setInvertOnOff(bool onoff){m_env.setInvertOnOff(onoff);};
+
 private:
     int m_nrofchannels;
     int m_nroffilters;
@@ -74,4 +83,6 @@ private:
     Envelope m_env;
     std::vector<double> m_envdata;
 
+    // Modulation
+    // 1 Envelope + 1-2 LFOs  + Midi (Pitch Bend / ModWheel)
 };

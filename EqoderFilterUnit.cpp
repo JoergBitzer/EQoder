@@ -19,11 +19,11 @@ m_maxGainf0(10.0),m_maxGainfend(1.0), m_gainform(1.0), m_freqspread(0.0), m_nrof
     // dynmaics
     m_env.setSamplerate(m_fs);
     m_env.setDelayTime(0.0);
-    m_env.setAttackRate(1000.0);
+    m_env.setAttackRate(200.0);
     m_env.setDecayRate(500.0);
-    m_env.setSustainLevel(0.0);
+    m_env.setSustainLevel(1.0);
     m_env.setHoldTime(0.0);
-    m_env.setReleaseRate(500.0);
+    m_env.setReleaseRate(5000.0);
     
     reset();
     // kust for debugging
@@ -172,7 +172,7 @@ void EQoderFilterUnit::setFilters()
      m_valmap.sety2(m_maxGainfend);
      m_valmap.setForm(m_gainform);
      m_valmap.setx1(m_f0);
-     m_valmap.setx2(m_f0*m_nroffilters);
+     m_valmap.setx2(m_f0*m_nroffilters+0.1); // + 0.1 to prevent division 0
  
     for (auto cc = 0u; cc < m_filters.size(); ++cc)
     {
