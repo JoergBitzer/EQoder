@@ -17,6 +17,7 @@ public:
 
 public:
     std::atomic<float>* m_nrOfFilter;
+    float m_nrOfFilterOld;
 };
 
 class Eqoder
@@ -47,7 +48,9 @@ private:
     void setParameterForNewFilterUnit(int key);
 
     // parameter handling
+    void updateParameter();
     EqoderParameter m_eqoderparamter;
+
 };
 
 const struct

@@ -79,7 +79,9 @@ void Eqoder::processBlock (juce::AudioBuffer<float>& data, juce::MidiBuffer& mid
 			 }
 		 }
 	}   
-            
+	// update parameter
+	updateParameter();
+
     // Audio processing
     m_data.resize(data.getNumSamples());
 
@@ -135,9 +137,24 @@ void Eqoder::processBlock (juce::AudioBuffer<float>& data, juce::MidiBuffer& mid
 	}
 
 }
+void Eqoder::updateParameter()
+{
+	float curValue = *m_eqoderparamter.m_nrOfFilter;
+	if (m_eqoderparamter.m_nrOfFilterOld != *m_eqoderparamter.m_nrOfFilter)
+	{
+		m_eqoderparamter.m_nrOfFilterOld = *m_eqoderparamter.m_nrOfFilter;
+		for (auto onefilterunit : m_midifilterunitmap )
+		{
+			onefilterunit.second->setNrOfFilters(int(m_eqoderparamter.m_nrOfFilterOld));
+		}
+	}
+
+}
+
 void Eqoder::setParameterForNewFilterUnit(int key)
 {
 	m_midifilterunitmap[key]->setSamplerate(m_fs);
+//	m_midifilterunitmap[key]->setNrOfFilters(m_eqoderparamter.m_nrOfFilterOld);
 	m_midifilterunitmap[key]->setNrOfFilters(8);
 	m_midifilterunitmap[key]->setBWSpread(0.1);
 	m_midifilterunitmap[key]->setQ(30.0);

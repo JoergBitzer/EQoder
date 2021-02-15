@@ -19,10 +19,10 @@ m_maxGainf0(10.0),m_maxGainfend(1.0), m_gainform(1.0), m_freqspread(0.0), m_nrof
     // dynmaics
     m_env.setSamplerate(m_fs);
     m_env.setDelayTime(0.0);
-    m_env.setAttackRate(10.0);
+    m_env.setAttackRate(1000.0);
     m_env.setDecayRate(500.0);
     m_env.setSustainLevel(0.0);
-    m_env.setHoldTime(1000.0);
+    m_env.setHoldTime(0.0);
     m_env.setReleaseRate(500.0);
     
     reset();
@@ -32,7 +32,7 @@ m_maxGainf0(10.0),m_maxGainfend(1.0), m_gainform(1.0), m_freqspread(0.0), m_nrof
 }
 EQoderFilterUnit::EQoderFilterUnit(double fs)
 :m_nroffilters(5),m_fs(fs),m_Q(4.0),m_f0(1000.0),m_bwspread(0.0),
-m_maxGainf0(10.0),m_maxGainfend(1.0), m_gainform(1.0), m_freqspread(0.0), m_nrofchannels(2)
+m_maxGainf0(10.0),m_maxGainfend(10.0), m_gainform(1.0), m_freqspread(0.0), m_nrofchannels(2)
 {
     m_filters.resize(m_maxnrofchannels);
     for (auto kk = 0u; kk < m_filters.size(); ++kk)
@@ -47,10 +47,10 @@ m_maxGainf0(10.0),m_maxGainfend(1.0), m_gainform(1.0), m_freqspread(0.0), m_nrof
     // dynmaics
     m_env.setSamplerate(m_fs);
     m_env.setDelayTime(0.0);
-    m_env.setAttackRate(100.0);
+    m_env.setAttackRate(6000.0);
     m_env.setDecayRate(500.0);
     m_env.setSustainLevel(0.0);
-    m_env.setHoldTime(2000.0);
+    m_env.setHoldTime(0.0);
     m_env.setReleaseRate(500.0);
     // just for debugging
     reset();
