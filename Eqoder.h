@@ -7,6 +7,7 @@
 #include "EqoderFilterUnit.h"
 #include "PointerPool.h"
 #include "EqoderGUISettings.h" // necessary for GUI Elements
+#include "Envelope.h"
 
 const int g_NrOfFilterUnits(8);
 const int g_maxChannels(8);
@@ -19,6 +20,26 @@ public:
 public:
     std::atomic<float>* m_nrOfFilter;
     float m_nrOfFilterOld;
+
+    std::atomic<float>* m_GainF0;
+    float m_GainF0Old;
+
+    std::atomic<float>* m_GainForm;
+    float m_GainFormOld;
+
+    std::atomic<float>* m_GainFend;
+    float m_GainFendOld;
+
+    std::atomic<float>* m_Q;
+    float m_QOld;
+
+    std::atomic<float>* m_FreqSpread;
+    float m_FreqSpreadOld;
+
+    std::atomic<float>* m_BWSpread;
+    float m_BWSpreadOld;
+
+
 };
 
 class Eqoder
@@ -51,6 +72,19 @@ private:
     // parameter handling
     void updateParameter();
     EqoderParameter m_eqoderparamter;
+    EnvelopeParameter m_envparameter;
+    bool hasparameterChanged(float valNew, float &valOld)
+    {
+        if (valOld != valNew)
+        {
+            valOld = valNew;
+            return true;
+        }
+        else
+        {
+            return false;
+        }
+    };
 
 };
 
@@ -63,6 +97,65 @@ const struct
 	float maxValue = 20.f;
 	float defaultValue = 7.f;
 }paramEqoderNrOfFilters;
+
+const struct
+{
+	const std::string ID = "GainF0";
+	std::string name = "Gain at f0";
+	std::string unitName = "dB";
+	float minValue = 0.f;
+	float maxValue = 20.f;
+	float defaultValue = 6.f;
+}paramEqoderGainF0;
+
+const struct
+{
+	const std::string ID = "GainFend";
+	std::string name = "Gain at fend";
+	std::string unitName = "dB";
+	float minValue = 0.f;
+	float maxValue = 20.f;
+	float defaultValue = 6.f;
+}paramEqoderGainFend;
+
+const struct
+{
+	const std::string ID = "GainForm";
+	std::string name = "Form of Gains";
+	std::string unitName = "";
+	float minValue = 0.f;
+	float maxValue = 20.f;
+	float defaultValue = 1.f;
+}paramEqoderGainForm;
+
+const struct
+{
+	const std::string ID = "Q";
+	std::string name = "Q";
+	std::string unitName = "";
+	float minValue = log(0.25f);
+	float maxValue = log(40.f);
+	float defaultValue = log(20.f);
+}paramEqoderQ;
+
+const struct
+{
+	const std::string ID = "FreqSpread";
+	std::string name = "FreqSpread";
+	std::string unitName = "";
+	float minValue = -2.f;
+	float maxValue = 2.f;
+	float defaultValue = 0.f;
+}paramEqoderFreqSpread;
+const struct
+{
+	const std::string ID = "BWSpread";
+	std::string name = "BWSpread";
+	std::string unitName = "";
+	float minValue = log(0.25f);
+	float maxValue = log(4.f);
+	float defaultValue = log(1.f);
+}paramEqoderBWSpread;
 
 
 
@@ -79,7 +172,7 @@ public:
 
 private:
     AudioProcessorValueTreeState& m_vts; 
-    
+
     Label m_NrOfFiltersLabel;
     Slider m_NrOfFiltersSlider;
     std::unique_ptr<AudioProcessorValueTreeState::SliderAttachment> m_NrOfFiltersAttachment;

@@ -26,6 +26,8 @@ EQoderAudioProcessor::EQoderAudioProcessor()
 //*/
     // this is just a placeholder (necessary for compiling/testing the template)
     m_eqoderparamter.addParameter(m_paramVector);
+    m_envparameter.addParameter(m_paramVector,0);
+
     m_parameterVTS = std::make_unique<AudioProcessorValueTreeState>(*this, nullptr, Identifier("FiltarborVTS"),
         AudioProcessorValueTreeState::ParameterLayout(m_paramVector.begin(), m_paramVector.end()));
 

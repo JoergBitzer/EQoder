@@ -5,6 +5,7 @@
 #include "JadeLookAndFeel.h"
 #include "PresetHandler.h"
 #include "Eqoder.h"
+#include "Envelope.h"
 
 
 //==============================================================================
@@ -30,7 +31,7 @@ private:
 #endif
     // plugin specific components
     EqoderParameterComponent m_eqparamcomponent;
-
+    EnvelopeParameterComponent m_envelopecomponent;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (EQoderAudioProcessorEditor)
 };

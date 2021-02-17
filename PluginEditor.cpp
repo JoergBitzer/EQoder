@@ -7,13 +7,13 @@
 EQoderAudioProcessorEditor::EQoderAudioProcessorEditor (EQoderAudioProcessor& p)
     : AudioProcessorEditor (&p), m_processorRef (p), m_presetGUI(p.m_presets),
     	m_keyboard(m_processorRef.m_keyboardState, MidiKeyboardComponent::Orientation::horizontalKeyboard),
-        m_eqparamcomponent(*m_processorRef.m_parameterVTS)
+        m_eqparamcomponent(*m_processorRef.m_parameterVTS),m_envelopecomponent(*m_processorRef.m_parameterVTS,0,"Env1")
 #else
 EQoderAudioProcessorEditor::EQoderAudioProcessorEditor (EQoderAudioProcessor& p)
     : AudioProcessorEditor (&p), m_processorRef (p), m_presetGUI(p.m_presets)
 #endif
 {
-
+    setSize (g_minGuiSize_x, g_minGuiSize_x*g_guiratio);
     setResizeLimits (g_minGuiSize_x,g_minGuiSize_x*g_guiratio , g_maxGuiSize_x, g_maxGuiSize_x*g_guiratio);
     getConstrainer()->setFixedAspectRatio(1./g_guiratio);
 
@@ -25,11 +25,9 @@ EQoderAudioProcessorEditor::EQoderAudioProcessorEditor (EQoderAudioProcessor& p)
     addAndMakeVisible(m_eqparamcomponent);
     m_eqparamcomponent.somethingChanged = [this]() {m_presetGUI.setSomethingChanged(); };
 
+    addAndMakeVisible(m_envelopecomponent);
+    m_envelopecomponent.somethingChanged = [this]() {m_presetGUI.setSomethingChanged(); };
 
-
-    setSize (g_minGuiSize_x, g_minGuiSize_x*g_guiratio);
-    setSize (g_minGuiSize_x, g_minGuiSize_x*g_guiratio);
-    repaint();
 }
 
 EQoderAudioProcessorEditor::~EQoderAudioProcessorEditor()
@@ -69,4 +67,6 @@ void EQoderAudioProcessorEditor::resized()
     
     m_eqparamcomponent.setBounds(scaleFactor*EQODER_MIN_XPOS,scaleFactor*EQODER_MIN_YPOS, scaleFactor*EQODER_MIN_WIDTH, scaleFactor*EQODER_MIN_HEIGHT);
     
+    m_envelopecomponent.setScaleFactor(scaleFactor);
+    m_envelopecomponent.setBounds(scaleFactor*ENVELOPE1_MIN_XPOS,scaleFactor*ENVELOPE1_MIN_YPOS,scaleFactor*ENVELOPE1_MIN_WIDTH,scaleFactor*ENVELOPE1_MIN_HEIGHT);
  }
