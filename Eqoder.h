@@ -6,6 +6,7 @@
 #include "JuceHeader.h"
 #include "EqoderFilterUnit.h"
 #include "PointerPool.h"
+#include "EqoderGUISettings.h" // necessary for GUI Elements
 
 const int g_NrOfFilterUnits(8);
 const int g_maxChannels(8);
@@ -78,4 +79,10 @@ public:
 
 private:
     AudioProcessorValueTreeState& m_vts; 
+    
+    Label m_NrOfFiltersLabel;
+    Slider m_NrOfFiltersSlider;
+    std::unique_ptr<AudioProcessorValueTreeState::SliderAttachment> m_NrOfFiltersAttachment;
+
+
 };

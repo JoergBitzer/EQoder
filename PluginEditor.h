@@ -1,8 +1,10 @@
 #pragma once
 
+#include "EqoderGUISettings.h"
 #include "PluginProcessor.h"
 #include "JadeLookAndFeel.h"
 #include "PresetHandler.h"
+#include "Eqoder.h"
 
 
 //==============================================================================
@@ -26,6 +28,9 @@ private:
 #if WITH_MIDIKEYBOARD    
     MidiKeyboardComponent m_keyboard;
 #endif
+    // plugin specific components
+    EqoderParameterComponent m_eqparamcomponent;
+
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (EQoderAudioProcessorEditor)
 };

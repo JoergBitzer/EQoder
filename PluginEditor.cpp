@@ -1,15 +1,13 @@
 #include "PluginProcessor.h"
 #include "PluginEditor.h"
 
-const int g_minGuiSize_x(500);
-const int g_maxGuiSize_x(1500);
-const int g_minGuiSize_y(200);
-const float g_guiratio = float(g_minGuiSize_y)/g_minGuiSize_x;
+
 //==============================================================================
 #if WITH_MIDIKEYBOARD   
 EQoderAudioProcessorEditor::EQoderAudioProcessorEditor (EQoderAudioProcessor& p)
     : AudioProcessorEditor (&p), m_processorRef (p), m_presetGUI(p.m_presets),
-    	m_keyboard(m_processorRef.m_keyboardState, MidiKeyboardComponent::Orientation::horizontalKeyboard)
+    	m_keyboard(m_processorRef.m_keyboardState, MidiKeyboardComponent::Orientation::horizontalKeyboard),
+        m_eqparamcomponent(*m_processorRef.m_parameterVTS)
 #else
 EQoderAudioProcessorEditor::EQoderAudioProcessorEditor (EQoderAudioProcessor& p)
     : AudioProcessorEditor (&p), m_processorRef (p), m_presetGUI(p.m_presets)
@@ -18,13 +16,20 @@ EQoderAudioProcessorEditor::EQoderAudioProcessorEditor (EQoderAudioProcessor& p)
 
     setResizeLimits (g_minGuiSize_x,g_minGuiSize_x*g_guiratio , g_maxGuiSize_x, g_maxGuiSize_x*g_guiratio);
     getConstrainer()->setFixedAspectRatio(1./g_guiratio);
-    setSize (g_minGuiSize_x, g_minGuiSize_x*g_guiratio);
 
 	addAndMakeVisible(m_presetGUI);
 #if WITH_MIDIKEYBOARD      
 	addAndMakeVisible(m_keyboard);
 #endif
+    
+    addAndMakeVisible(m_eqparamcomponent);
+    m_eqparamcomponent.somethingChanged = [this]() {m_presetGUI.setSomethingChanged(); };
 
+
+
+    setSize (g_minGuiSize_x, g_minGuiSize_x*g_guiratio);
+    setSize (g_minGuiSize_x, g_minGuiSize_x*g_guiratio);
+    repaint();
 }
 
 EQoderAudioProcessorEditor::~EQoderAudioProcessorEditor()
@@ -37,9 +42,7 @@ void EQoderAudioProcessorEditor::paint (juce::Graphics& g)
     // (Our component is opaque, so we must completely fill the background with a solid colour)
     g.fillAll (getLookAndFeel().findColour (juce::ResizableWindow::backgroundColourId));
 
-    g.setColour (juce::Colours::white);
-    g.setFont (15.0f);
-    g.drawFittedText ("Hello World!", getLocalBounds(), juce::Justification::centred, 1);
+
 }
 const int g_minPresetHandlerHeight(30);
 const float g_midikeyboardratio(0.13);
@@ -57,4 +60,13 @@ void EQoderAudioProcessorEditor::resized()
 #endif
     // This is generally where you'll want to lay out the positions of any
     // subcomponents in your editor..
-}
+	// int newWidth = getWidth();
+	// int newHeight = getHeight();
+
+	int width = getWidth();
+
+	float scaleFactor = float(width)/g_minGuiSize_x;
+    
+    m_eqparamcomponent.setBounds(scaleFactor*EQODER_MIN_XPOS,scaleFactor*EQODER_MIN_YPOS, scaleFactor*EQODER_MIN_WIDTH, scaleFactor*EQODER_MIN_HEIGHT);
+    
+ }

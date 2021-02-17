@@ -192,14 +192,16 @@ int EqoderParameter::addParameter(std::vector < std::unique_ptr<RangedAudioParam
 EqoderParameterComponent::EqoderParameterComponent(AudioProcessorValueTreeState& vts)
 :m_vts(vts),somethingChanged(nullptr)
 {
-	/*	m_delayLabel.setText("Delay", NotificationType::dontSendNotification);
-	addAndMakeVisible(m_delayLabel);
-	m_delaySlider.setSliderStyle(Slider::SliderStyle::LinearHorizontal);
-	m_delaySlider.setTextBoxStyle(Slider::TextEntryBoxPosition::TextBoxAbove, true, 80, 20);
-	m_delayAttachment = std::make_unique<SliderAttachment>(m_vts, paramChorusDelay.ID, m_delaySlider);
-	addAndMakeVisible(m_delaySlider);
-	m_delaySlider.onValueChange = [this]() {if (somethingChanged != nullptr)  somethingChanged(); };
-*/
+	m_NrOfFiltersLabel.setText("NrOfFilters", NotificationType::dontSendNotification);
+	m_NrOfFiltersLabel.setJustificationType(Justification::centred);
+	m_NrOfFiltersLabel.attachToComponent (&m_NrOfFiltersSlider, false);
+	addAndMakeVisible(m_NrOfFiltersLabel);
+
+	m_NrOfFiltersSlider.setSliderStyle(Slider::SliderStyle::Rotary);
+	// m_NrOfFiltersSlider.setTextBoxStyle(Slider::TextEntryBoxPosition::TextBoxBelow, true, 60, 20);
+	m_NrOfFiltersAttachment = std::make_unique<AudioProcessorValueTreeState::SliderAttachment>(m_vts, paramEqoderNrOfFilters.ID, m_NrOfFiltersSlider);
+	addAndMakeVisible(m_NrOfFiltersSlider);
+	m_NrOfFiltersSlider.onValueChange = [this]() {if (somethingChanged != nullptr) somethingChanged(); };
 
 }
 
@@ -210,11 +212,34 @@ void EqoderParameterComponent::paint(Graphics& g)
 }
 void EqoderParameterComponent::resized()
 {
-	int w = getWidth();
-	int h = getHeight();
+	int Height = getHeight();
+	int Width = getWidth();
 
-    // make resizable
-	//m_delayLabel.setBounds(GUI_MIN_DISTANCE + ROTARYSIZE, GUI_MIN_DISTANCE, LABEL_WIDTH, ELEMNT_HEIGHT);
-	//m_delaySlider.setBounds(GUI_MIN_DISTANCE + ROTARYSIZE, GUI_MIN_DISTANCE, w - 2 * GUI_MIN_DISTANCE-2*ROTARYSIZE,2*ELEMNT_HEIGHT);
+	float scaleFactor = float(Width)/EQODER_MIN_WIDTH;
 
+	auto r = getLocalBounds();
+
+	// reduce for a small border
+	int newBorderWidth = jmax(GLOBAL_MIN_DISTANCE,int(scaleFactor*GLOBAL_MIN_DISTANCE));
+	r.reduce(newBorderWidth, newBorderWidth);
+	auto s = r;
+	auto t = r;
+
+	// m_NrOfFiltersLabel.setFont(Font(scaleFactor*GLOBAL_MIN_LABEL_FONTSIZE));
+	int newRotaryWidth = jmax(GLOBAL_MIN_ROTARY_WIDTH,int(scaleFactor*GLOBAL_MIN_ROTARY_WIDTH));
+	m_NrOfFiltersSlider.setTextBoxStyle(Slider::TextEntryBoxPosition::TextBoxBelow, true,scaleFactor* GLOBAL_MIN_ROTARY_TB_WIDTH, scaleFactor*GLOBAL_MIN_ROTARY_TB_HEIGHT);
+	
+	int newLabelHeight = jmax(GLOBAL_MIN_LABEL_HEIGHT,int(scaleFactor*GLOBAL_MIN_LABEL_HEIGHT));
+
+//	s = r.removeFromTop(newLabelHeight);
+	
+//	int newLabelWidth = jmax(GLOBAL_MIN_LABEL_WIDTH,int(scaleFactor*GLOBAL_MIN_LABEL_WIDTH));
+//	m_NrOfFiltersLabel.setBounds(s.removeFromLeft(newLabelWidth));
+	
+
+	s = r;
+	t = s.removeFromBottom(newRotaryWidth + newLabelHeight);
+	m_NrOfFiltersSlider.setBounds(t.removeFromLeft(newRotaryWidth));
+		
+	
 }
