@@ -137,40 +137,146 @@ void Eqoder::processBlock (juce::AudioBuffer<float>& data, juce::MidiBuffer& mid
 	}
 
 }
+
 void Eqoder::updateParameter()
 {
-	float curValue = *m_eqoderparamter.m_nrOfFilter;
-	if (m_eqoderparamter.m_nrOfFilterOld != *m_eqoderparamter.m_nrOfFilter)
+	if (hasparameterChanged(*m_eqoderparamter.m_nrOfFilter, m_eqoderparamter.m_nrOfFilterOld))
 	{
-		m_eqoderparamter.m_nrOfFilterOld = *m_eqoderparamter.m_nrOfFilter;
 		for (auto onefilterunit : m_midifilterunitmap )
 		{
 			onefilterunit.second->setNrOfFilters(int(m_eqoderparamter.m_nrOfFilterOld));
 		}
 	}
+	if (hasparameterChanged(*m_eqoderparamter.m_GainF0, m_eqoderparamter.m_GainF0Old))
+	{
+		for (auto onefilterunit : m_midifilterunitmap )
+		{
+			onefilterunit.second->setMaxGainf0(m_eqoderparamter.m_GainF0Old);
+		}
+	}
+	if (hasparameterChanged(*m_eqoderparamter.m_GainFend, m_eqoderparamter.m_GainFendOld))
+	{
+		for (auto onefilterunit : m_midifilterunitmap )
+		{
+			onefilterunit.second->setMaxGainfend(m_eqoderparamter.m_GainFendOld);
+		}
+	}
+	if (hasparameterChanged(*m_eqoderparamter.m_GainForm, m_eqoderparamter.m_GainFormOld))
+	{
+		for (auto onefilterunit : m_midifilterunitmap )
+		{
+			onefilterunit.second->setGainForm(m_eqoderparamter.m_GainFormOld);
+		}
+	}
 
+	if (hasparameterChanged(*m_eqoderparamter.m_Q, m_eqoderparamter.m_QOld))
+	{
+		for (auto onefilterunit : m_midifilterunitmap )
+		{
+			onefilterunit.second->setQ(exp(m_eqoderparamter.m_QOld));
+		}
+	}
+
+	if (hasparameterChanged(*m_eqoderparamter.m_FreqSpread, m_eqoderparamter.m_FreqSpreadOld))
+	{
+		for (auto onefilterunit : m_midifilterunitmap )
+		{
+			onefilterunit.second->setFreqSpread(m_eqoderparamter.m_FreqSpreadOld);
+		}
+	}
+	if (hasparameterChanged(*m_eqoderparamter.m_BWSpread, m_eqoderparamter.m_BWSpreadOld))
+	{
+		for (auto onefilterunit : m_midifilterunitmap )
+		{
+			onefilterunit.second->setBWSpread(exp(m_eqoderparamter.m_BWSpreadOld));
+		}
+	}
+
+
+
+	// Envelope
+	if (hasparameterChanged(*m_envparameter.m_attack, m_envparameter.m_attackOld))
+	{
+		for (auto onefilterunit : m_midifilterunitmap )
+		{
+			onefilterunit.second->setAttackRate(exp(m_envparameter.m_attackOld));
+		}		
+	}
+	if (hasparameterChanged(*m_envparameter.m_decay, m_envparameter.m_decayOld))
+	{
+		for (auto onefilterunit : m_midifilterunitmap )
+		{
+			onefilterunit.second->setDecayRate(exp(m_envparameter.m_decayOld));
+		}		
+	}
+	if (hasparameterChanged(*m_envparameter.m_sustain, m_envparameter.m_sustainOld))
+	{
+		for (auto onefilterunit : m_midifilterunitmap )
+		{
+			onefilterunit.second->setSustainLevel(exp(m_envparameter.m_sustainOld));
+		}		
+	}
+	if (hasparameterChanged(*m_envparameter.m_release, m_envparameter.m_releaseOld))
+	{
+		for (auto onefilterunit : m_midifilterunitmap )
+		{
+			onefilterunit.second->setReleaseRate(exp(m_envparameter.m_releaseOld));
+		}		
+	}
 }
 
 void Eqoder::setParameterForNewFilterUnit(int key)
 {
 	m_midifilterunitmap[key]->setSamplerate(m_fs);
 	m_midifilterunitmap[key]->setNrOfFilters(m_eqoderparamter.m_nrOfFilterOld);
-//	m_midifilterunitmap[key]->setNrOfFilters(8);
-	m_midifilterunitmap[key]->setBWSpread(0.1);
-	m_midifilterunitmap[key]->setQ(30.0);
-	// Uebergang der Harmonischen
-	m_midifilterunitmap[key]->setMaxGainf0(20.f);
-	m_midifilterunitmap[key]->setMaxGainfend(5.f);
-	m_midifilterunitmap[key]->setGainForm(1.0);
+	m_midifilterunitmap[key]->setMaxGainf0(m_eqoderparamter.m_GainF0Old);
+	m_midifilterunitmap[key]->setMaxGainfend(m_eqoderparamter.m_GainFendOld);
+	m_midifilterunitmap[key]->setGainForm(m_eqoderparamter.m_GainFormOld);
 
+	m_midifilterunitmap[key]->setBWSpread(exp(m_eqoderparamter.m_BWSpreadOld));
+	m_midifilterunitmap[key]->setQ(exp(m_eqoderparamter.m_QOld));
+	// Uebergang der Harmonischen
 	// ermöglicht virtuellen Pitch, wenn < 1.0 (alle nicht 2er Potenzen sind inharmonisch)
-	m_midifilterunitmap[key]->setFreqSpread(0.0);
+	m_midifilterunitmap[key]->setFreqSpread(m_eqoderparamter.m_FreqSpreadOld);
+
+	// envelope
+	m_midifilterunitmap[key]->setAttackRate(exp(m_envparameter.m_attackOld));
+	m_midifilterunitmap[key]->setDecayRate(exp(m_envparameter.m_decayOld));
+	m_midifilterunitmap[key]->setReleaseRate(exp(m_envparameter.m_releaseOld));
+	m_midifilterunitmap[key]->setSustainLevel(m_envparameter.m_sustainOld);
 }
 void Eqoder::prepareParameter(std::unique_ptr<AudioProcessorValueTreeState>& vts)
 {
 	// m_vts = vts;
     m_eqoderparamter.m_nrOfFilter = vts->getRawParameterValue(paramEqoderNrOfFilters.ID);
-	m_eqoderparamter.m_nrOfFilterOld = 1;
+	m_eqoderparamter.m_nrOfFilterOld = paramEqoderNrOfFilters.defaultValue;
+    m_eqoderparamter.m_GainF0 = vts->getRawParameterValue(paramEqoderGainF0.ID);
+	m_eqoderparamter.m_GainF0Old = paramEqoderGainF0.defaultValue;
+    m_eqoderparamter.m_GainFend = vts->getRawParameterValue(paramEqoderGainFend.ID);
+	m_eqoderparamter.m_GainFendOld = paramEqoderGainFend.defaultValue;
+    m_eqoderparamter.m_GainForm = vts->getRawParameterValue(paramEqoderGainForm.ID);
+	m_eqoderparamter.m_GainFormOld = paramEqoderGainForm.defaultValue;
+    m_eqoderparamter.m_Q = vts->getRawParameterValue(paramEqoderQ.ID);
+	m_eqoderparamter.m_QOld = paramEqoderQ.defaultValue;
+    m_eqoderparamter.m_FreqSpread = vts->getRawParameterValue(paramEqoderFreqSpread.ID);
+	m_eqoderparamter.m_FreqSpreadOld = paramEqoderFreqSpread.defaultValue;
+    m_eqoderparamter.m_BWSpread = vts->getRawParameterValue(paramEqoderBWSpread.ID);
+	m_eqoderparamter.m_BWSpreadOld = paramEqoderBWSpread.defaultValue;
+
+
+	// envelope
+	m_envparameter.m_attack = vts->getRawParameterValue(paramEnvAttack.ID[0]);
+	m_envparameter.m_attackOld = paramEnvAttack.defaultValue;
+	m_envparameter.m_decay = vts->getRawParameterValue(paramEnvDecay.ID[0]);
+	m_envparameter.m_decayOld = paramEnvDecay.defaultValue;
+	m_envparameter.m_release = vts->getRawParameterValue(paramEnvRelease.ID[0]);
+	m_envparameter.m_releaseOld = paramEnvRelease.defaultValue;
+	m_envparameter.m_sustain = vts->getRawParameterValue(paramEnvSustain.ID[0]);
+	m_envparameter.m_sustainOld = paramEnvSustain.defaultValue;
+
+
+
+
 }
 
 
@@ -186,6 +292,61 @@ int EqoderParameter::addParameter(std::vector < std::unique_ptr<RangedAudioParam
 		AudioProcessorParameter::genericParameter,
 		[](float value, int MaxLen) { return (String(1.0*int(value), MaxLen)); },
 		[](const String& text) {return text.getFloatValue(); }));
+
+    	paramVector.push_back(std::make_unique<AudioParameterFloat>(paramEqoderGainF0.ID,
+		paramEqoderGainF0.name,
+		NormalisableRange<float>(paramEqoderGainF0.minValue, paramEqoderGainF0.maxValue),
+		paramEqoderGainF0.defaultValue,
+		paramEqoderGainF0.unitName,
+		AudioProcessorParameter::genericParameter,
+		[](float value, int MaxLen) { return (String(0.1*int(10.0*value), MaxLen)); },
+		[](const String& text) {return text.getFloatValue(); }));
+
+    	paramVector.push_back(std::make_unique<AudioParameterFloat>(paramEqoderGainFend.ID,
+		paramEqoderGainFend.name,
+		NormalisableRange<float>(paramEqoderGainFend.minValue, paramEqoderGainFend.maxValue),
+		paramEqoderGainFend.defaultValue,
+		paramEqoderGainFend.unitName,
+		AudioProcessorParameter::genericParameter,
+		[](float value, int MaxLen) { return (String(0.1*int(10.0*value), MaxLen)); },
+		[](const String& text) {return text.getFloatValue(); }));
+
+    	
+		paramVector.push_back(std::make_unique<AudioParameterFloat>(paramEqoderGainForm.ID,
+		paramEqoderGainForm.name,
+		NormalisableRange<float>(paramEqoderGainForm.minValue, paramEqoderGainForm.maxValue),
+		paramEqoderGainForm.defaultValue,
+		paramEqoderGainForm.unitName,
+		AudioProcessorParameter::genericParameter,
+		[](float value, int MaxLen) { return (String(0.1*int(10.0*value), MaxLen)); },
+		[](const String& text) {return text.getFloatValue(); }));
+
+		paramVector.push_back(std::make_unique<AudioParameterFloat>(paramEqoderQ.ID,
+			paramEqoderQ.name,
+			NormalisableRange<float>(paramEqoderQ.minValue, paramEqoderQ.maxValue),
+			paramEqoderQ.defaultValue,
+			paramEqoderQ.unitName,
+			AudioProcessorParameter::genericParameter,
+			[](float value, int MaxLen) { return (String(int(exp(value) * 10 + 0.5) * 0.1, MaxLen) ); },
+			[](const String& text) {return text.getFloatValue(); }));
+
+		paramVector.push_back(std::make_unique<AudioParameterFloat>(paramEqoderBWSpread.ID,
+			paramEqoderBWSpread.name,
+			NormalisableRange<float>(paramEqoderBWSpread.minValue, paramEqoderBWSpread.maxValue),
+			paramEqoderBWSpread.defaultValue,
+			paramEqoderBWSpread.unitName,
+			AudioProcessorParameter::genericParameter,
+			[](float value, int MaxLen) { return (String(int(exp(value) * 10 + 0.5) * 0.1, MaxLen) ); },
+			[](const String& text) {return text.getFloatValue(); }));
+
+		paramVector.push_back(std::make_unique<AudioParameterFloat>(paramEqoderFreqSpread.ID,
+			paramEqoderFreqSpread.name,
+			NormalisableRange<float>(paramEqoderFreqSpread.minValue, paramEqoderFreqSpread.maxValue),
+			paramEqoderFreqSpread.defaultValue,
+			paramEqoderFreqSpread.unitName,
+			AudioProcessorParameter::genericParameter,
+			[](float value, int MaxLen) { return (String(int((value) * 16 + 0.5) * 0.0625, MaxLen) ); },
+			[](const String& text) {return text.getFloatValue(); }));
 
 }
 
@@ -207,13 +368,15 @@ EqoderParameterComponent::EqoderParameterComponent(AudioProcessorValueTreeState&
 
 void EqoderParameterComponent::paint(Graphics& g)
 {
-	g.fillAll((getLookAndFeel().findColour(ResizableWindow::backgroundColourId)).brighter(0.2));
+	g.fillAll((getLookAndFeel().findColour(ResizableWindow::backgroundColourId)).darker(0.2));
 
 }
 void EqoderParameterComponent::resized()
 {
 	int Height = getHeight();
 	int Width = getWidth();
+	int parentHeight = getParentHeight();
+	int parentWidth = getParentWidth();
 
 	float scaleFactor = float(Width)/EQODER_MIN_WIDTH;
 
