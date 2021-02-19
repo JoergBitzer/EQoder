@@ -21,12 +21,12 @@ const float g_guiratio = float(g_minGuiSize_y)/g_minGuiSize_x;
 #define EQODER_MIN_XPOS 50
 #define EQODER_MIN_YPOS 50
 
-#define EQODER_MIN_WIDTH 300
-#define EQODER_MIN_HEIGHT 110
+#define EQODER_MIN_WIDTH 540
+#define EQODER_MIN_HEIGHT 100
 
 //
 #define ENVELOPE1_MIN_XPOS 50
 #define ENVELOPE1_MIN_YPOS 200
-#define ENVELOPE1_MIN_WIDTH 400
-#define ENVELOPE1_MIN_HEIGHT 110
+#define ENVELOPE1_MIN_WIDTH 260 // 260 for ADSR //
+#define ENVELOPE1_MIN_HEIGHT 85
 

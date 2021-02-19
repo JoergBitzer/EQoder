@@ -1,18 +1,16 @@
 
 #include "Eqoder.h"
 
+
 Eqoder::Eqoder()
 {
 	m_unitCounter = 0;
-	//m_pfilterunit = std::make_unique<EQoderFilterUnit[]> (g_NrOfFilterUnits);
+
 	for (int kk = 0; kk < g_NrOfFilterUnits; ++kk)
 	{
 		m_pointerPool.add(std::unique_ptr<EQoderFilterUnit>(new EQoderFilterUnit()));
-		// auto oneunitpointer = std::make_unique<EQoderFilterUnit>(); 
-		// m_pfilterunit.push_back(oneunitpointer);
-		// m_pointerPool.add(m_pfilterunit[kk]);
-		//m_pfilterunit[kk] = std::unique_ptr<EQoderFilterUnit>(new EQoderFilterUnit());
 	}
+	m_OutGain = 1.0;
 }
 Eqoder::~Eqoder()
 {
@@ -44,6 +42,7 @@ void Eqoder::processBlock (juce::AudioBuffer<float>& data, juce::MidiBuffer& mid
 				if (m_midifilterunitmap.count(midiNoteNr)) // note already on, re attack
 				{
 					//int unitnr = m_midifilterunitmap[midiNoteNr];
+					setParameterForNewFilterUnit(midiNoteNr);
 					m_midifilterunitmap[midiNoteNr]->setFundamentalFrequency(freqNote,Velocity);
 				}
 				else
@@ -132,7 +131,7 @@ void Eqoder::processBlock (juce::AudioBuffer<float>& data, juce::MidiBuffer& mid
 		
 		for (auto idx = 0u; idx < data.getNumSamples(); idx++)
         {
-            channelData[idx] = m_data[channel][idx];
+            channelData[idx] = m_OutGain*m_data[channel][idx];
         }
 	}
 
@@ -191,6 +190,11 @@ void Eqoder::updateParameter()
 			onefilterunit.second->setBWSpread(exp(m_eqoderparamter.m_BWSpreadOld));
 		}
 	}
+	if (hasparameterChanged(*m_eqoderparamter.m_OutGain, m_eqoderparamter.m_OutGainOld))
+	{
+		m_OutGain = pow(10.0,m_eqoderparamter.m_OutGainOld/20.0);
+
+	}
 
 
 
@@ -244,6 +248,7 @@ void Eqoder::setParameterForNewFilterUnit(int key)
 	m_midifilterunitmap[key]->setDecayRate(exp(m_envparameter.m_decayOld));
 	m_midifilterunitmap[key]->setReleaseRate(exp(m_envparameter.m_releaseOld));
 	m_midifilterunitmap[key]->setSustainLevel(m_envparameter.m_sustainOld);
+	m_midifilterunitmap[key]->reset();
 }
 void Eqoder::prepareParameter(std::unique_ptr<AudioProcessorValueTreeState>& vts)
 {
@@ -262,6 +267,9 @@ void Eqoder::prepareParameter(std::unique_ptr<AudioProcessorValueTreeState>& vts
 	m_eqoderparamter.m_FreqSpreadOld = paramEqoderFreqSpread.defaultValue;
     m_eqoderparamter.m_BWSpread = vts->getRawParameterValue(paramEqoderBWSpread.ID);
 	m_eqoderparamter.m_BWSpreadOld = paramEqoderBWSpread.defaultValue;
+    m_eqoderparamter.m_OutGain = vts->getRawParameterValue(paramEqoderOutGain.ID);
+	m_eqoderparamter.m_OutGainOld = paramEqoderOutGain.defaultValue;
+
 
 
 	// envelope
@@ -348,10 +356,19 @@ int EqoderParameter::addParameter(std::vector < std::unique_ptr<RangedAudioParam
 			[](float value, int MaxLen) { return (String(int((value) * 16 + 0.5) * 0.0625, MaxLen) ); },
 			[](const String& text) {return text.getFloatValue(); }));
 
+		paramVector.push_back(std::make_unique<AudioParameterFloat>(paramEqoderOutGain.ID,
+			paramEqoderOutGain.name,
+			NormalisableRange<float>(paramEqoderOutGain.minValue, paramEqoderOutGain.maxValue),
+			paramEqoderOutGain.defaultValue,
+			paramEqoderOutGain.unitName,
+			AudioProcessorParameter::genericParameter,
+			[](float value, int MaxLen) { return (String(int((value) * 4 + 0.5) * 0.25, MaxLen) ); },
+			[](const String& text) {return text.getFloatValue(); }));
+
 }
 
 EqoderParameterComponent::EqoderParameterComponent(AudioProcessorValueTreeState& vts)
-:m_vts(vts),somethingChanged(nullptr)
+:m_vts(vts),somethingChanged(nullptr),m_scaleFactor(1.f)
 {
 	m_NrOfFiltersLabel.setText("NrOfFilters", NotificationType::dontSendNotification);
 	m_NrOfFiltersLabel.setJustificationType(Justification::centred);
@@ -364,6 +381,84 @@ EqoderParameterComponent::EqoderParameterComponent(AudioProcessorValueTreeState&
 	addAndMakeVisible(m_NrOfFiltersSlider);
 	m_NrOfFiltersSlider.onValueChange = [this]() {if (somethingChanged != nullptr) somethingChanged(); };
 
+	m_GainF0Label.setText("GainF0", NotificationType::dontSendNotification);
+	m_GainF0Label.setJustificationType(Justification::centred);
+	m_GainF0Label.attachToComponent (&m_GainF0Slider, false);
+	addAndMakeVisible(m_GainF0Label);
+
+	m_GainF0Slider.setSliderStyle(Slider::SliderStyle::Rotary);
+	// m_GainF0Slider.setTextBoxStyle(Slider::TextEntryBoxPosition::TextBoxBelow, true, 60, 20);
+	m_GainF0Attachment = std::make_unique<AudioProcessorValueTreeState::SliderAttachment>(m_vts, paramEqoderGainF0.ID, m_GainF0Slider);
+	addAndMakeVisible(m_GainF0Slider);
+	m_GainF0Slider.onValueChange = [this]() {if (somethingChanged != nullptr) somethingChanged(); };
+
+	m_GainFendLabel.setText("GainFend", NotificationType::dontSendNotification);
+	m_GainFendLabel.setJustificationType(Justification::centred);
+	m_GainFendLabel.attachToComponent (&m_GainFendSlider, false);
+	addAndMakeVisible(m_GainFendLabel);
+
+	m_GainFendSlider.setSliderStyle(Slider::SliderStyle::Rotary);
+	// m_GainFendSlider.setTextBoxStyle(Slider::TextEntryBoxPosition::TextBoxBelow, true, 60, 20);
+	m_GainFendAttachment = std::make_unique<AudioProcessorValueTreeState::SliderAttachment>(m_vts, paramEqoderGainFend.ID, m_GainFendSlider);
+	addAndMakeVisible(m_GainFendSlider);
+	m_GainFendSlider.onValueChange = [this]() {if (somethingChanged != nullptr) somethingChanged(); };
+
+	m_GainFormLabel.setText("GainForm", NotificationType::dontSendNotification);
+	m_GainFormLabel.setJustificationType(Justification::centred);
+	m_GainFormLabel.attachToComponent (&m_GainFormSlider, false);
+	addAndMakeVisible(m_GainFormLabel);
+
+	m_GainFormSlider.setSliderStyle(Slider::SliderStyle::Rotary);
+	// m_GainFormSlider.setTextBoxStyle(Slider::TextEntryBoxPosition::TextBoxBelow, true, 60, 20);
+	m_GainFormAttachment = std::make_unique<AudioProcessorValueTreeState::SliderAttachment>(m_vts, paramEqoderGainForm.ID, m_GainFormSlider);
+	addAndMakeVisible(m_GainFormSlider);
+	m_GainFormSlider.onValueChange = [this]() {if (somethingChanged != nullptr) somethingChanged(); };
+
+	m_QLabel.setText("Q", NotificationType::dontSendNotification);
+	m_QLabel.setJustificationType(Justification::centred);
+	m_QLabel.attachToComponent (&m_QSlider, false);
+	addAndMakeVisible(m_QLabel);
+
+	m_QSlider.setSliderStyle(Slider::SliderStyle::Rotary);
+	// m_QSlider.setTextBoxStyle(Slider::TextEntryBoxPosition::TextBoxBelow, true, 60, 20);
+	m_QAttachment = std::make_unique<AudioProcessorValueTreeState::SliderAttachment>(m_vts, paramEqoderQ.ID, m_QSlider);
+	addAndMakeVisible(m_QSlider);
+	m_QSlider.onValueChange = [this]() {if (somethingChanged != nullptr) somethingChanged(); };
+
+	m_FreqSpreadLabel.setText("FreqSpread", NotificationType::dontSendNotification);
+	m_FreqSpreadLabel.setJustificationType(Justification::centred);
+	m_FreqSpreadLabel.attachToComponent (&m_FreqSpreadSlider, false);
+	addAndMakeVisible(m_FreqSpreadLabel);
+
+	m_FreqSpreadSlider.setSliderStyle(Slider::SliderStyle::Rotary);
+	// m_FreqSpreadSlider.setTextBoxStyle(Slider::TextEntryBoxPosition::TextBoxBelow, true, 60, 20);
+	m_FreqSpreadAttachment = std::make_unique<AudioProcessorValueTreeState::SliderAttachment>(m_vts, paramEqoderFreqSpread.ID, m_FreqSpreadSlider);
+	addAndMakeVisible(m_FreqSpreadSlider);
+	m_FreqSpreadSlider.onValueChange = [this]() {if (somethingChanged != nullptr) somethingChanged(); };
+
+	m_BWSpreadLabel.setText("BWSpread", NotificationType::dontSendNotification);
+	m_BWSpreadLabel.setJustificationType(Justification::centred);
+	m_BWSpreadLabel.attachToComponent (&m_BWSpreadSlider, false);
+	addAndMakeVisible(m_BWSpreadLabel);
+
+	m_BWSpreadSlider.setSliderStyle(Slider::SliderStyle::Rotary);
+	// m_BWSpreadSlider.setTextBoxStyle(Slider::TextEntryBoxPosition::TextBoxBelow, true, 60, 20);
+	m_BWSpreadAttachment = std::make_unique<AudioProcessorValueTreeState::SliderAttachment>(m_vts, paramEqoderBWSpread.ID, m_BWSpreadSlider);
+	addAndMakeVisible(m_BWSpreadSlider);
+	m_BWSpreadSlider.onValueChange = [this]() {if (somethingChanged != nullptr) somethingChanged(); };
+
+	m_OutGainLabel.setText("OutGain", NotificationType::dontSendNotification);
+	m_OutGainLabel.setJustificationType(Justification::centred);
+	m_OutGainLabel.attachToComponent (&m_OutGainSlider, false);
+	addAndMakeVisible(m_OutGainLabel);
+
+	m_OutGainSlider.setSliderStyle(Slider::SliderStyle::Rotary);
+	// m_OutGainSlider.setTextBoxStyle(Slider::TextEntryBoxPosition::TextBoxBelow, true, 60, 20);
+	m_OutGainAttachment = std::make_unique<AudioProcessorValueTreeState::SliderAttachment>(m_vts, paramEqoderOutGain.ID, m_OutGainSlider);
+	addAndMakeVisible(m_OutGainSlider);
+	m_OutGainSlider.onValueChange = [this]() {if (somethingChanged != nullptr) somethingChanged(); };
+
+
 }
 
 void EqoderParameterComponent::paint(Graphics& g)
@@ -373,36 +468,47 @@ void EqoderParameterComponent::paint(Graphics& g)
 }
 void EqoderParameterComponent::resized()
 {
-	int Height = getHeight();
-	int Width = getWidth();
-	int parentHeight = getParentHeight();
-	int parentWidth = getParentWidth();
-
-	float scaleFactor = float(Width)/EQODER_MIN_WIDTH;
+	float scaleFactor = m_scaleFactor;
 
 	auto r = getLocalBounds();
 
 	// reduce for a small border
-	int newBorderWidth = jmax(GLOBAL_MIN_DISTANCE,int(scaleFactor*GLOBAL_MIN_DISTANCE));
+	int newBorderWidth = scaleFactor*GLOBAL_MIN_DISTANCE;
 	r.reduce(newBorderWidth, newBorderWidth);
 	auto s = r;
 	auto t = r;
 
-	// m_NrOfFiltersLabel.setFont(Font(scaleFactor*GLOBAL_MIN_LABEL_FONTSIZE));
-	int newRotaryWidth = jmax(GLOBAL_MIN_ROTARY_WIDTH,int(scaleFactor*GLOBAL_MIN_ROTARY_WIDTH));
+	t = s.removeFromBottom(scaleFactor*(GLOBAL_MIN_LABEL_HEIGHT/2+GLOBAL_MIN_ROTARY_WIDTH));
+	m_NrOfFiltersSlider.setBounds(t.removeFromLeft(scaleFactor*GLOBAL_MIN_ROTARY_WIDTH));
 	m_NrOfFiltersSlider.setTextBoxStyle(Slider::TextEntryBoxPosition::TextBoxBelow, true,scaleFactor* GLOBAL_MIN_ROTARY_TB_WIDTH, scaleFactor*GLOBAL_MIN_ROTARY_TB_HEIGHT);
-	
-	int newLabelHeight = jmax(GLOBAL_MIN_LABEL_HEIGHT,int(scaleFactor*GLOBAL_MIN_LABEL_HEIGHT));
+	t.removeFromLeft(scaleFactor*GLOBAL_MIN_DISTANCE);	
 
-//	s = r.removeFromTop(newLabelHeight);
-	
-//	int newLabelWidth = jmax(GLOBAL_MIN_LABEL_WIDTH,int(scaleFactor*GLOBAL_MIN_LABEL_WIDTH));
-//	m_NrOfFiltersLabel.setBounds(s.removeFromLeft(newLabelWidth));
-	
+	m_GainF0Slider.setBounds(t.removeFromLeft(scaleFactor*GLOBAL_MIN_ROTARY_WIDTH));
+	m_GainF0Slider.setTextBoxStyle(Slider::TextEntryBoxPosition::TextBoxBelow, true,scaleFactor* GLOBAL_MIN_ROTARY_TB_WIDTH, scaleFactor*GLOBAL_MIN_ROTARY_TB_HEIGHT);
+	t.removeFromLeft(scaleFactor*GLOBAL_MIN_DISTANCE);	
 
-	s = r;
-	t = s.removeFromBottom(newRotaryWidth + newLabelHeight);
-	m_NrOfFiltersSlider.setBounds(t.removeFromLeft(newRotaryWidth));
-		
-	
+	m_GainFendSlider.setBounds(t.removeFromLeft(scaleFactor*GLOBAL_MIN_ROTARY_WIDTH));
+	m_GainFendSlider.setTextBoxStyle(Slider::TextEntryBoxPosition::TextBoxBelow, true,scaleFactor* GLOBAL_MIN_ROTARY_TB_WIDTH, scaleFactor*GLOBAL_MIN_ROTARY_TB_HEIGHT);
+	t.removeFromLeft(scaleFactor*GLOBAL_MIN_DISTANCE);	
+
+	m_GainFormSlider.setBounds(t.removeFromLeft(scaleFactor*GLOBAL_MIN_ROTARY_WIDTH));
+	m_GainFormSlider.setTextBoxStyle(Slider::TextEntryBoxPosition::TextBoxBelow, true,scaleFactor* GLOBAL_MIN_ROTARY_TB_WIDTH, scaleFactor*GLOBAL_MIN_ROTARY_TB_HEIGHT);
+	t.removeFromLeft(scaleFactor*GLOBAL_MIN_DISTANCE);	
+
+	m_QSlider.setBounds(t.removeFromLeft(scaleFactor*GLOBAL_MIN_ROTARY_WIDTH));
+	m_QSlider.setTextBoxStyle(Slider::TextEntryBoxPosition::TextBoxBelow, true,scaleFactor* GLOBAL_MIN_ROTARY_TB_WIDTH, scaleFactor*GLOBAL_MIN_ROTARY_TB_HEIGHT);
+	t.removeFromLeft(scaleFactor*GLOBAL_MIN_DISTANCE);	
+
+	m_FreqSpreadSlider.setBounds(t.removeFromLeft(scaleFactor*GLOBAL_MIN_ROTARY_WIDTH));
+	m_FreqSpreadSlider.setTextBoxStyle(Slider::TextEntryBoxPosition::TextBoxBelow, true,scaleFactor* GLOBAL_MIN_ROTARY_TB_WIDTH, scaleFactor*GLOBAL_MIN_ROTARY_TB_HEIGHT);
+	t.removeFromLeft(scaleFactor*GLOBAL_MIN_DISTANCE);	
+
+	m_BWSpreadSlider.setBounds(t.removeFromLeft(scaleFactor*GLOBAL_MIN_ROTARY_WIDTH));
+	m_BWSpreadSlider.setTextBoxStyle(Slider::TextEntryBoxPosition::TextBoxBelow, true,scaleFactor* GLOBAL_MIN_ROTARY_TB_WIDTH, scaleFactor*GLOBAL_MIN_ROTARY_TB_HEIGHT);
+	t.removeFromLeft(scaleFactor*GLOBAL_MIN_DISTANCE);	
+
+	m_OutGainSlider.setBounds(t.removeFromLeft(scaleFactor*GLOBAL_MIN_ROTARY_WIDTH));
+	m_OutGainSlider.setTextBoxStyle(Slider::TextEntryBoxPosition::TextBoxBelow, true,scaleFactor* GLOBAL_MIN_ROTARY_TB_WIDTH, scaleFactor*GLOBAL_MIN_ROTARY_TB_HEIGHT);
+	t.removeFromLeft(scaleFactor*GLOBAL_MIN_DISTANCE);	
+
 }

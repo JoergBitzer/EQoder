@@ -145,7 +145,7 @@ void EQoderFilterUnit::setFreqSpread(double freqspread)
 
 void EQoderFilterUnit::checknroffilters()
 {
-    int maxtoNyquist = int(0.5*m_fs/(m_f0*pow(2.0,m_freqspread))); //-1 for security
+    int maxtoNyquist = int(0.499*m_fs/(m_f0*pow(2.0,m_freqspread))); //-1 for security
 
     if (m_nroffilters>maxtoNyquist)
         m_nroffilters = maxtoNyquist;

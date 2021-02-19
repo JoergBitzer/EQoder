@@ -39,7 +39,8 @@ public:
     std::atomic<float>* m_BWSpread;
     float m_BWSpreadOld;
 
-
+    std::atomic<float>* m_OutGain;
+    float m_OutGainOld;
 };
 
 class Eqoder
@@ -85,6 +86,7 @@ private:
             return false;
         }
     };
+    double m_OutGain;
 
 };
 
@@ -143,8 +145,8 @@ const struct
 	const std::string ID = "FreqSpread";
 	std::string name = "FreqSpread";
 	std::string unitName = "";
-	float minValue = -2.f;
-	float maxValue = 2.f;
+	float minValue = -2.1f;
+	float maxValue = 2.1f;
 	float defaultValue = 0.f;
 }paramEqoderFreqSpread;
 const struct
@@ -156,6 +158,16 @@ const struct
 	float maxValue = log(4.f);
 	float defaultValue = log(1.f);
 }paramEqoderBWSpread;
+
+const struct
+{
+	const std::string ID = "OutGain";
+	std::string name = "OutGain";
+	std::string unitName = "dB";
+	float minValue = -90.f;
+	float maxValue = 10.f;
+	float defaultValue = 0.f;
+}paramEqoderOutGain;
 
 
 
@@ -169,6 +181,7 @@ public:
 	void paint(Graphics& g) override;
 	void resized() override;
     std::function<void()> somethingChanged;
+    void setScaleFactor(float newscale){m_scaleFactor = newscale;};
 
 private:
     AudioProcessorValueTreeState& m_vts; 
@@ -177,5 +190,34 @@ private:
     Slider m_NrOfFiltersSlider;
     std::unique_ptr<AudioProcessorValueTreeState::SliderAttachment> m_NrOfFiltersAttachment;
 
+    Label m_GainF0Label;
+    Slider m_GainF0Slider;
+    std::unique_ptr<AudioProcessorValueTreeState::SliderAttachment> m_GainF0Attachment;
+
+    Label m_GainFendLabel;
+    Slider m_GainFendSlider;
+    std::unique_ptr<AudioProcessorValueTreeState::SliderAttachment> m_GainFendAttachment;
+
+    Label m_GainFormLabel;
+    Slider m_GainFormSlider;
+    std::unique_ptr<AudioProcessorValueTreeState::SliderAttachment> m_GainFormAttachment;
+
+    Label m_QLabel;
+    Slider m_QSlider;
+    std::unique_ptr<AudioProcessorValueTreeState::SliderAttachment> m_QAttachment;
+
+    Label m_FreqSpreadLabel;
+    Slider m_FreqSpreadSlider;
+    std::unique_ptr<AudioProcessorValueTreeState::SliderAttachment> m_FreqSpreadAttachment;
+
+    Label m_BWSpreadLabel;
+    Slider m_BWSpreadSlider;
+    std::unique_ptr<AudioProcessorValueTreeState::SliderAttachment> m_BWSpreadAttachment;
+
+    Label m_OutGainLabel;
+    Slider m_OutGainSlider;
+    std::unique_ptr<AudioProcessorValueTreeState::SliderAttachment> m_OutGainAttachment;
+
+    float m_scaleFactor;
 
 };

@@ -64,7 +64,7 @@ void EQoderAudioProcessorEditor::resized()
 	int width = getWidth();
 
 	float scaleFactor = float(width)/g_minGuiSize_x;
-    
+    m_eqparamcomponent.setScaleFactor(scaleFactor);
     m_eqparamcomponent.setBounds(scaleFactor*EQODER_MIN_XPOS,scaleFactor*EQODER_MIN_YPOS, scaleFactor*EQODER_MIN_WIDTH, scaleFactor*EQODER_MIN_HEIGHT);
     
     m_envelopecomponent.setScaleFactor(scaleFactor);
