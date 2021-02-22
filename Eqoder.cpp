@@ -3,6 +3,7 @@
 
 
 Eqoder::Eqoder()
+:m_maxunits(g_NrOfFilterUnits)
 {
 	m_unitCounter = 0;
 
@@ -48,7 +49,7 @@ void Eqoder::processBlock (juce::AudioBuffer<float>& data, juce::MidiBuffer& mid
 				else
 				{
 					m_unitCounter++;
-					if (m_unitCounter < g_NrOfFilterUnits) // Resources are available
+					if (m_unitCounter < m_maxunits) // Resources are available
 					{
 						m_midifilterunitmap[midiNoteNr] = m_pointerPool.acquire();
 						setParameterForNewFilterUnit(midiNoteNr);
@@ -139,6 +140,15 @@ void Eqoder::processBlock (juce::AudioBuffer<float>& data, juce::MidiBuffer& mid
 
 void Eqoder::updateParameter()
 {
+	if (hasparameterChanged(*m_eqoderparamter.m_nrOfFilterUnits, m_eqoderparamter.m_nrOfFilterUnitsOld))
+	{
+		m_maxunits = m_eqoderparamter.m_nrOfFilterUnitsOld;
+		m_protect.enter();
+		m_unitCounter = 0;
+		m_midifilterunitmap.clear();
+
+		m_protect.exit();
+	}
 	if (hasparameterChanged(*m_eqoderparamter.m_nrOfFilter, m_eqoderparamter.m_nrOfFilterOld))
 	{
 		for (auto onefilterunit : m_midifilterunitmap )
@@ -217,7 +227,7 @@ void Eqoder::updateParameter()
 	{
 		for (auto onefilterunit : m_midifilterunitmap )
 		{
-			onefilterunit.second->setSustainLevel(exp(m_envparameter.m_sustainOld));
+			onefilterunit.second->setSustainLevel((m_envparameter.m_sustainOld));
 		}		
 	}
 	if (hasparameterChanged(*m_envparameter.m_release, m_envparameter.m_releaseOld))
@@ -253,6 +263,8 @@ void Eqoder::setParameterForNewFilterUnit(int key)
 void Eqoder::prepareParameter(std::unique_ptr<AudioProcessorValueTreeState>& vts)
 {
 	// m_vts = vts;
+    m_eqoderparamter.m_nrOfFilterUnits = vts->getRawParameterValue(paramEqoderNrOfFilterUnits.ID);
+	m_eqoderparamter.m_nrOfFilterUnitsOld = paramEqoderNrOfFilterUnits.defaultValue;
     m_eqoderparamter.m_nrOfFilter = vts->getRawParameterValue(paramEqoderNrOfFilters.ID);
 	m_eqoderparamter.m_nrOfFilterOld = paramEqoderNrOfFilters.defaultValue;
     m_eqoderparamter.m_GainF0 = vts->getRawParameterValue(paramEqoderGainF0.ID);
@@ -292,6 +304,15 @@ void Eqoder::prepareParameter(std::unique_ptr<AudioProcessorValueTreeState>& vts
 
 int EqoderParameter::addParameter(std::vector < std::unique_ptr<RangedAudioParameter>>& paramVector)
 {
+    	paramVector.push_back(std::make_unique<AudioParameterFloat>(paramEqoderNrOfFilterUnits.ID,
+		paramEqoderNrOfFilterUnits.name,
+		NormalisableRange<float>(paramEqoderNrOfFilterUnits.minValue, paramEqoderNrOfFilterUnits.maxValue),
+		paramEqoderNrOfFilterUnits.defaultValue,
+		paramEqoderNrOfFilterUnits.unitName,
+		AudioProcessorParameter::genericParameter,
+		[](float value, int MaxLen) { return (String(1.0*int(value), MaxLen)); },
+		[](const String& text) {return text.getFloatValue(); }));
+
     	paramVector.push_back(std::make_unique<AudioParameterFloat>(paramEqoderNrOfFilters.ID,
 		paramEqoderNrOfFilters.name,
 		NormalisableRange<float>(paramEqoderNrOfFilters.minValue, paramEqoderNrOfFilters.maxValue),
@@ -370,6 +391,16 @@ int EqoderParameter::addParameter(std::vector < std::unique_ptr<RangedAudioParam
 EqoderParameterComponent::EqoderParameterComponent(AudioProcessorValueTreeState& vts)
 :m_vts(vts),somethingChanged(nullptr),m_scaleFactor(1.f)
 {
+	m_NrOfFilterUnitsLabel.setText("NrOfUnits", NotificationType::dontSendNotification);
+	m_NrOfFilterUnitsLabel.setJustificationType(Justification::centred);
+	m_NrOfFilterUnitsLabel.attachToComponent (&m_NrOfFilterUnitsSlider, false);
+	addAndMakeVisible(m_NrOfFilterUnitsLabel);
+	m_NrOfFilterUnitsSlider.setSliderStyle(Slider::SliderStyle::Rotary);
+	// m_NrOfFiltersSlider.setTextBoxStyle(Slider::TextEntryBoxPosition::TextBoxBelow, true, 60, 20);
+	m_NrOfFilterUnitsAttachment = std::make_unique<AudioProcessorValueTreeState::SliderAttachment>(m_vts, paramEqoderNrOfFilterUnits.ID, m_NrOfFilterUnitsSlider);
+	addAndMakeVisible(m_NrOfFilterUnitsSlider);
+	m_NrOfFilterUnitsSlider.onValueChange = [this]() {if (somethingChanged != nullptr) somethingChanged(); };
+
 	m_NrOfFiltersLabel.setText("NrOfFilters", NotificationType::dontSendNotification);
 	m_NrOfFiltersLabel.setJustificationType(Justification::centred);
 	m_NrOfFiltersLabel.attachToComponent (&m_NrOfFiltersSlider, false);
@@ -479,6 +510,10 @@ void EqoderParameterComponent::resized()
 	auto t = r;
 
 	t = s.removeFromBottom(scaleFactor*(GLOBAL_MIN_LABEL_HEIGHT/2+GLOBAL_MIN_ROTARY_WIDTH));
+	m_NrOfFilterUnitsSlider.setBounds(t.removeFromLeft(scaleFactor*GLOBAL_MIN_ROTARY_WIDTH));
+	m_NrOfFilterUnitsSlider.setTextBoxStyle(Slider::TextEntryBoxPosition::TextBoxBelow, true,scaleFactor* GLOBAL_MIN_ROTARY_TB_WIDTH, scaleFactor*GLOBAL_MIN_ROTARY_TB_HEIGHT);
+	t.removeFromLeft(scaleFactor*GLOBAL_MIN_DISTANCE);	
+
 	m_NrOfFiltersSlider.setBounds(t.removeFromLeft(scaleFactor*GLOBAL_MIN_ROTARY_WIDTH));
 	m_NrOfFiltersSlider.setTextBoxStyle(Slider::TextEntryBoxPosition::TextBoxBelow, true,scaleFactor* GLOBAL_MIN_ROTARY_TB_WIDTH, scaleFactor*GLOBAL_MIN_ROTARY_TB_HEIGHT);
 	t.removeFromLeft(scaleFactor*GLOBAL_MIN_DISTANCE);	

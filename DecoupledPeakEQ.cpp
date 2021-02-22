@@ -110,6 +110,7 @@ void DecoupledPeakEQ::setSamplerate(double fs)
 {
     m_fs = fs;
     computeCoeffs();
+    reset();
 }
 void DecoupledPeakEQ::computeCoeffs()
 {

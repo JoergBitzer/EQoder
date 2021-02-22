@@ -20,8 +20,7 @@ const float g_guiratio = float(g_minGuiSize_y)/g_minGuiSize_x;
 // parameter blocks
 #define EQODER_MIN_XPOS 50
 #define EQODER_MIN_YPOS 50
-
-#define EQODER_MIN_WIDTH 540
+#define EQODER_MIN_WIDTH 600
 #define EQODER_MIN_HEIGHT 100
 
 //
@@ -31,9 +30,8 @@ const float g_guiratio = float(g_minGuiSize_y)/g_minGuiSize_x;
 #define ENVELOPE1_MIN_HEIGHT 85
 
 // 
-#define DISPLAY_MIN_XPOS 600
+#define DISPLAY_MIN_XPOS 680
 #define DISPLAY_MIN_YPOS 50
-
 #define DISPLAY_MIN_WIDTH 42
 #define DISPLAY_MIN_HEIGHT 200
 

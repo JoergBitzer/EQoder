@@ -18,6 +18,9 @@ public:
 	int addParameter(std::vector < std::unique_ptr<RangedAudioParameter>>& paramVector);
 
 public:
+    std::atomic<float>* m_nrOfFilterUnits;
+    float m_nrOfFilterUnitsOld;
+
     std::atomic<float>* m_nrOfFilter;
     float m_nrOfFilterOld;
 
@@ -64,6 +67,7 @@ private:
     
     // filter pool
     int m_unitCounter;
+    int m_maxunits;
 
    	std::map <int, std::shared_ptr<EQoderFilterUnit>> m_midifilterunitmap;
     PointerPool<EQoderFilterUnit> m_pointerPool;
@@ -90,6 +94,15 @@ private:
 
 };
 
+const struct
+{
+	const std::string ID = "NrOfFilterUnits";
+	std::string name = "Number of FilterUnits";
+	std::string unitName = "";
+	float minValue = 1.f;
+	float maxValue = 8.f;
+	float defaultValue = 4.f;
+}paramEqoderNrOfFilterUnits;
 const struct
 {
 	const std::string ID = "NrOfFilters";
@@ -185,6 +198,10 @@ public:
 
 private:
     AudioProcessorValueTreeState& m_vts; 
+
+    Label m_NrOfFilterUnitsLabel;
+    Slider m_NrOfFilterUnitsSlider;
+    std::unique_ptr<AudioProcessorValueTreeState::SliderAttachment> m_NrOfFilterUnitsAttachment;
 
     Label m_NrOfFiltersLabel;
     Slider m_NrOfFiltersSlider;
