@@ -7,7 +7,8 @@
 EQoderAudioProcessorEditor::EQoderAudioProcessorEditor (EQoderAudioProcessor& p)
     : AudioProcessorEditor (&p), m_processorRef (p), m_presetGUI(p.m_presets),
     	m_keyboard(m_processorRef.m_keyboardState, MidiKeyboardComponent::Orientation::horizontalKeyboard),
-        m_eqparamcomponent(*m_processorRef.m_parameterVTS),m_envelopecomponent(*m_processorRef.m_parameterVTS,0,"Env1")
+        m_eqparamcomponent(*m_processorRef.m_parameterVTS),m_envelopecomponent(*m_processorRef.m_parameterVTS,0,"Env1"),
+        m_leveldisplay(m_processorRef.m_meter)
 #else
 EQoderAudioProcessorEditor::EQoderAudioProcessorEditor (EQoderAudioProcessor& p)
     : AudioProcessorEditor (&p), m_processorRef (p), m_presetGUI(p.m_presets)
@@ -28,6 +29,7 @@ EQoderAudioProcessorEditor::EQoderAudioProcessorEditor (EQoderAudioProcessor& p)
     addAndMakeVisible(m_envelopecomponent);
     m_envelopecomponent.somethingChanged = [this]() {m_presetGUI.setSomethingChanged(); };
 
+    addAndMakeVisible(m_leveldisplay);
 }
 
 EQoderAudioProcessorEditor::~EQoderAudioProcessorEditor()
@@ -69,4 +71,6 @@ void EQoderAudioProcessorEditor::resized()
     
     m_envelopecomponent.setScaleFactor(scaleFactor);
     m_envelopecomponent.setBounds(scaleFactor*ENVELOPE1_MIN_XPOS,scaleFactor*ENVELOPE1_MIN_YPOS,scaleFactor*ENVELOPE1_MIN_WIDTH,scaleFactor*ENVELOPE1_MIN_HEIGHT);
+ 
+    m_leveldisplay.setBounds(scaleFactor*DISPLAY_MIN_XPOS,scaleFactor*DISPLAY_MIN_YPOS, scaleFactor*DISPLAY_MIN_WIDTH, scaleFactor*DISPLAY_MIN_HEIGHT);
  }

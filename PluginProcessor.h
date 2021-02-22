@@ -6,6 +6,7 @@
 // Here the plugin things
 #include "Eqoder.h"
 #include "Envelope.h"
+#include "SimpleMeter.h"
 
 //==============================================================================
 class EQoderAudioProcessor  : public juce::AudioProcessor
@@ -64,6 +65,7 @@ private:
     Eqoder m_Eqoder;
     EqoderParameter m_eqoderparamter;
     EnvelopeParameter m_envparameter;
+    SimpleMeter m_meter;
     //==============================================================================
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (EQoderAudioProcessor)
 };

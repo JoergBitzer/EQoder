@@ -119,8 +119,8 @@ void DecoupledPeakEQ::computeCoeffs()
 void DecoupledPeakEQ::computek1Freq()
 {
     m_k1 = -cos(2.0*M_PI*m_freq/m_fs);
-    //assert(abs(m_k1) < 1.0);
-    if (abs(m_k1) >= 1.0)
+    //assert(fabs(m_k1) < 1.0);
+    if (fabs(m_k1) >= 1.0)
         m_k1 = 0.0;
 }
 void DecoupledPeakEQ::setBWviaQ()
@@ -132,8 +132,8 @@ void DecoupledPeakEQ::computek2Bandwidth()
 {
     double B = (2.0*M_PI*m_BW)/m_fs;
     m_k2 = (1-tan(B))/(1+tan(B)); 
-    //assert(abs(m_k2) < 1.0);
-    if (abs(m_k2) >= 1.0)
+    //assert(fabs(m_k2) < 1.0);
+    if (fabs(m_k2) >= 1.0)
         m_k2 = 0.0;   
 }
 

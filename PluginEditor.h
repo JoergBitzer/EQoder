@@ -6,6 +6,7 @@
 #include "PresetHandler.h"
 #include "Eqoder.h"
 #include "Envelope.h"
+#include "SimpleMeter.h"
 
 
 //==============================================================================
@@ -32,6 +33,7 @@ private:
     // plugin specific components
     EqoderParameterComponent m_eqparamcomponent;
     EnvelopeParameterComponent m_envelopecomponent;
+    SimpleMeterComponent m_leveldisplay;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (EQoderAudioProcessorEditor)
 };

@@ -124,6 +124,7 @@ void EQoderAudioProcessor::prepareToPlay (double sampleRate, int samplesPerBlock
     juce::ignoreUnused (samplesPerBlock);
     m_fs = sampleRate;
     m_Eqoder.prepareToPlay(sampleRate,samplesPerBlock);
+    m_meter.prepareToPlay(sampleRate,samplesPerBlock);
 }
 
 void EQoderAudioProcessor::releaseResources()
@@ -167,6 +168,7 @@ void EQoderAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer,
     // Here the plugin
     //m_protect.enter();
     m_Eqoder.processBlock(buffer,midiMessages);
+    m_meter.analyseData(buffer);
 #if WITH_MIDIKEYBOARD     
     midiMessages.clear();
 #endif

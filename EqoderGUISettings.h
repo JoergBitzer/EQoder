@@ -30,3 +30,10 @@ const float g_guiratio = float(g_minGuiSize_y)/g_minGuiSize_x;
 #define ENVELOPE1_MIN_WIDTH 260 // 260 for ADSR //
 #define ENVELOPE1_MIN_HEIGHT 85
 
+// 
+#define DISPLAY_MIN_XPOS 600
+#define DISPLAY_MIN_YPOS 50
+
+#define DISPLAY_MIN_WIDTH 42
+#define DISPLAY_MIN_HEIGHT 200
+
