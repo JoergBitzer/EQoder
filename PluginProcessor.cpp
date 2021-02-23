@@ -108,7 +108,7 @@ const juce::String EQoderAudioProcessor::getProgramName (int index)
     if (index == 0)
         return "Init";
     //juce::ignoreUnused (index);
-    //return {};
+    return {};
 }
 
 void EQoderAudioProcessor::changeProgramName (int index, const juce::String& newName)

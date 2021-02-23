@@ -2,8 +2,8 @@
 #include "EqoderFilterUnit.h"
 
 EQoderFilterUnit::EQoderFilterUnit()
-:m_nroffilters(5),m_fs(44100.0),m_Q(20.0),m_f0(2000.0),m_bwspread(1.0),
-m_maxGainf0(10.0),m_maxGainfend(1.0), m_gainform(1.0), m_freqspread(0.0), m_nrofchannels(2)
+:m_nrofchannels(2), m_nroffilters(5),m_fs(44100.0),m_Q(20.0),m_f0(2000.0),m_bwspread(1.0),
+m_maxGainf0(10.0),m_maxGainfend(1.0), m_gainform(1.0), m_freqspread(0.0)
 {
     m_filters.resize(m_maxnrofchannels);
     for (auto kk = 0u; kk < m_filters.size(); ++kk)
@@ -31,8 +31,8 @@ m_maxGainf0(10.0),m_maxGainfend(1.0), m_gainform(1.0), m_freqspread(0.0), m_nrof
 
 }
 EQoderFilterUnit::EQoderFilterUnit(double fs)
-:m_nroffilters(5),m_fs(fs),m_Q(4.0),m_f0(1000.0),m_bwspread(0.0),
-m_maxGainf0(10.0),m_maxGainfend(10.0), m_gainform(1.0), m_freqspread(0.0), m_nrofchannels(2)
+:m_nrofchannels(2), m_nroffilters(5),m_fs(fs),m_Q(4.0),m_f0(1000.0),m_bwspread(0.0),
+m_maxGainf0(10.0),m_maxGainfend(10.0), m_gainform(1.0), m_freqspread(0.0)
 {
     m_filters.resize(m_maxnrofchannels);
     for (auto kk = 0u; kk < m_filters.size(); ++kk)

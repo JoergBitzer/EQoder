@@ -50,23 +50,23 @@ public:
     // Envelope
     void setDelayTime(double del_ms){m_env.setDelayTime(del_ms);};
 	void setAttackRate(double att_ms){m_env.setAttackRate(att_ms);};
-	void setHoldTime(double hold_ms){m_env.setHoldTime(hold_ms);};;
-	void setDecayRate(double dec_ms){m_env.setDecayRate(dec_ms);};;
-	void setSustainLevel(double level){m_env.setSustainLevel(level);};;
-	void setReleaseRate(double rel_ms){m_env.setReleaseRate(rel_ms);};;
+	void setHoldTime(double hold_ms){m_env.setHoldTime(hold_ms);};
+	void setDecayRate(double dec_ms){m_env.setDecayRate(dec_ms);};
+	void setSustainLevel(double level){m_env.setSustainLevel(level);};
+	void setReleaseRate(double rel_ms){m_env.setReleaseRate(rel_ms);};
 	void setInvertOnOff(bool onoff){m_env.setInvertOnOff(onoff);};
 
 private:
     int m_nrofchannels;
-    int m_nroffilters;
+    unsigned int m_nroffilters;
 
     double m_fs;
     double m_Q;
     double m_f0;
+    double m_bwspread;
     double m_maxGainf0;
     double m_maxGainfend;
     double m_gainform;
-    double m_bwspread;
     double m_freqspread;
     double m_velocity;
     std::vector<std::vector<DecoupledPeakEQ>> m_filters;

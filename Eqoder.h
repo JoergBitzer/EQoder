@@ -15,7 +15,7 @@ const int g_maxChannels(8);
 class EqoderParameter
 {
 public:
-	int addParameter(std::vector < std::unique_ptr<RangedAudioParameter>>& paramVector);
+	void addParameter(std::vector < std::unique_ptr<RangedAudioParameter>>& paramVector);
 
 public:
     std::atomic<float>* m_nrOfFilterUnits;

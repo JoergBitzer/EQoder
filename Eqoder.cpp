@@ -85,7 +85,7 @@ void Eqoder::processBlock (juce::AudioBuffer<float>& data, juce::MidiBuffer& mid
     // Audio processing
     m_data.resize(data.getNumSamples());
 
-    auto totalNrChannels = data.getNumChannels();;
+    size_t totalNrChannels = data.getNumChannels();
     m_data.resize(totalNrChannels);
 	for (long unsigned int channel = 0; channel < totalNrChannels; ++channel)
 	{
@@ -302,7 +302,7 @@ void Eqoder::prepareParameter(std::unique_ptr<AudioProcessorValueTreeState>& vts
 
 
 
-int EqoderParameter::addParameter(std::vector < std::unique_ptr<RangedAudioParameter>>& paramVector)
+void EqoderParameter::addParameter(std::vector < std::unique_ptr<RangedAudioParameter>>& paramVector)
 {
     	paramVector.push_back(std::make_unique<AudioParameterFloat>(paramEqoderNrOfFilterUnits.ID,
 		paramEqoderNrOfFilterUnits.name,
@@ -389,7 +389,7 @@ int EqoderParameter::addParameter(std::vector < std::unique_ptr<RangedAudioParam
 }
 
 EqoderParameterComponent::EqoderParameterComponent(AudioProcessorValueTreeState& vts)
-:m_vts(vts),somethingChanged(nullptr),m_scaleFactor(1.f)
+:somethingChanged(nullptr),m_vts(vts),m_scaleFactor(1.f)
 {
 	m_NrOfFilterUnitsLabel.setText("NrOfUnits", NotificationType::dontSendNotification);
 	m_NrOfFilterUnitsLabel.setJustificationType(Justification::centred);
