@@ -25,6 +25,7 @@ void Eqoder::prepareToPlay (double sampleRate, int samplesPerBlock,int nrofchann
 	m_nrOfChannels = nrofchannels;
 
 	m_data.clear();
+	m_limiter.prepareToPlay(sampleRate,m_nrOfChannels);
 }
 void Eqoder::processBlock (juce::AudioBuffer<float>& data, juce::MidiBuffer& mididata)
 {
@@ -124,6 +125,9 @@ void Eqoder::processBlock (juce::AudioBuffer<float>& data, juce::MidiBuffer& mid
 		m_midifilterunitmap.erase(notestostop[kk]);
 		m_unitCounter--;
 	}
+	
+	m_limiter.processSamples(m_data);
+	
 	m_protect.exit();
         
 	for (long unsigned int channel = 0; channel < totalNrChannels; ++channel)
@@ -133,6 +137,18 @@ void Eqoder::processBlock (juce::AudioBuffer<float>& data, juce::MidiBuffer& mid
 		for (auto idx = 0u; idx < data.getNumSamples(); idx++)
         {
             channelData[idx] = m_OutGain*m_data[channel][idx];
+			if (!std::isfinite(channelData[idx] ))
+			{
+				switch(std::fpclassify(channelData[idx])) 
+				{
+        			case FP_INFINITE:  DBG( "Inf");break;
+        			case FP_NAN:       DBG( "NaN");break;
+        			case FP_NORMAL:    DBG( "normal");break;
+        			case FP_SUBNORMAL: DBG( "subnormal");break;
+        			case FP_ZERO:      DBG( "zero");break;
+        			default:           DBG( "unknown");break;
+    			}
+			}	
         }
 	}
 

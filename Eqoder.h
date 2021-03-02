@@ -8,6 +8,7 @@
 #include "PointerPool.h"
 #include "EqoderGUISettings.h" // necessary for GUI Elements
 #include "Envelope.h"
+#include "BrickwallLimiter.h"
 
 const int g_NrOfFilterUnits(8);
 const int g_maxChannels(8);
@@ -73,6 +74,9 @@ private:
     PointerPool<EQoderFilterUnit> m_pointerPool;
     int m_softestNote;
     void setParameterForNewFilterUnit(int key);
+
+    // Protection limiter
+    BrickwallLimiter m_limiter;
 
     // parameter handling
     void updateParameter();

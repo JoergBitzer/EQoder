@@ -1,4 +1,6 @@
 #include <cassert>
+#include <cmath>
+#include <JuceHeader.h>
 #include "DecoupledPeakEQ.h"
 
 DecoupledPeakEQ::DecoupledPeakEQ()
@@ -64,6 +66,20 @@ int  DecoupledPeakEQ::processDataWithEnvelope(std::vector<double>& data,const st
 
         // gain
         data[kk] = 0.5*(in + out) + 0.5*(((m_gain-1.0)*envdata[kk])+1.0) *(in - out);
+
+        if (!std::isfinite(data[kk] ))
+        {
+            switch(std::fpclassify(data[kk])) 
+            {
+                case FP_INFINITE:  DBG( "Inf");break;
+                case FP_NAN:       DBG( "NaN");break;
+                case FP_NORMAL:    DBG( "normal");break;
+                case FP_SUBNORMAL: DBG( "subnormal");break;
+                case FP_ZERO:      DBG( "zero");break;
+                default:           DBG( "unknown");break;
+            }
+        }	
+
 
     }
 
