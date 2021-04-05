@@ -16,6 +16,7 @@ EQoderAudioProcessorEditor::EQoderAudioProcessorEditor (EQoderAudioProcessor& p)
 {
     setSize (g_minGuiSize_x, g_minGuiSize_x*g_guiratio);
     setResizeLimits (g_minGuiSize_x,g_minGuiSize_x*g_guiratio , g_maxGuiSize_x, g_maxGuiSize_x*g_guiratio);
+    setResizable(true,true);
     getConstrainer()->setFixedAspectRatio(1./g_guiratio);
 
 	addAndMakeVisible(m_presetGUI);
