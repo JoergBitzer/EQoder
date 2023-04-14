@@ -182,7 +182,7 @@ void EQoderFilterUnit::setFilters()
      m_valmap.setForm(m_gainform);
      m_valmap.setx1(m_f0);
      m_valmap.setx2(m_f0*m_nroffilters+0.1); // + 0.1 to prevent division 0
- 
+    //m_f0 + m_f0*pow(2.0,m_freqspread)*(m_nroffilters-1)
     for (auto cc = 0u; cc < m_filters.size(); ++cc)
     {
         for (auto kk = 0u; kk < m_filters[cc].size(); ++kk)

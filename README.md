@@ -1,18 +1,22 @@
 # EQoder
 a playable EQ
 
+## Remarks:
+
+
 
 ## todo
 
-Switch parallel to seriel (at the moment). parallel seems more sensible.
-AutoNormalisation = Apply negative Gain According to added Gain.
-Allow Notch? Gain at the moment is always positive
+* Switch parallel to seriel (at the moment). parallel seems more sensible. Done ==> Wrong idea, since the original is not coming thru or it will be always part of the signal for open filters.
+* Allow Notch? Gain at the moment is always positive Done == > does not work 
 
-Reprogram the core audio to AudioBuffer
+Prio -2 AutoNormalisation = Apply negative Gain According to added Gain.
 
-Build visualization tool for EQ Parameter.
+Prio -4 Reprogram the core audio to AudioBuffer 
 
-Build on Mac and Linux 
+Prio 0 Build visualization tool for EQ Parameter.
+
+Prio 0 Build on Mac and Windows
 
 Produce presets and example files 
 
