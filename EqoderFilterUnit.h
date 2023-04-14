@@ -15,6 +15,7 @@ public:
 
     void setSamplerate(double fs);
     int processData(std::vector<std::vector<double>>& data);
+    int processData(std::vector<std::vector<double>>& indata, std::vector<std::vector<double>>& outdata);
     void reset();
 
     

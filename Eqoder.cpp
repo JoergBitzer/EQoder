@@ -12,6 +12,7 @@ Eqoder::Eqoder()
 		m_pointerPool.add(std::unique_ptr<EQoderFilterUnit>(new EQoderFilterUnit()));
 	}
 	m_OutGain = 1.0;
+	m_Parallel = false;
 }
 Eqoder::~Eqoder()
 {
@@ -25,6 +26,8 @@ void Eqoder::prepareToPlay (double sampleRate, int samplesPerBlock,int nrofchann
 	m_nrOfChannels = nrofchannels;
 
 	m_data.clear();
+	m_InData.clear();
+	m_SumData.clear();
 	m_limiter.prepareToPlay(sampleRate,m_nrOfChannels);
 }
 void Eqoder::processBlock (juce::AudioBuffer<float>& data, juce::MidiBuffer& mididata)
@@ -84,19 +87,27 @@ void Eqoder::processBlock (juce::AudioBuffer<float>& data, juce::MidiBuffer& mid
 	updateParameter();
 
     // Audio processing
-    m_data.resize(data.getNumSamples());
+    // m_data.resize(data.getNumSamples());
 
-    size_t totalNrChannels = data.getNumChannels();
+    size_t totalNrChannels = static_cast<size_t>(data.getNumChannels());
     m_data.resize(totalNrChannels);
+	m_InData.resize(totalNrChannels);
+	m_SumData.resize(totalNrChannels);
+
 	for (long unsigned int channel = 0; channel < totalNrChannels; ++channel)
 	{
-		m_data[channel].resize(data.getNumSamples());
-        auto* channelData = data.getWritePointer (channel);
+		m_data[channel].resize(static_cast<size_t>(data.getNumSamples()));
+		m_InData[channel].resize(static_cast<size_t>(data.getNumSamples()));
+		m_SumData[channel].resize(static_cast<size_t>(data.getNumSamples()));
+		std::fill(m_SumData[channel].begin(), m_SumData[channel].end(), 0.);
+        
+		auto* channelData = data.getWritePointer (channel);
 
         // ..do something to the data...
-        for (auto idx = 0u; idx < data.getNumSamples(); idx++)
+        for (auto idx = 0; idx < data.getNumSamples(); idx++)
         {
             m_data[channel][idx] = channelData[idx];
+            m_InData[channel][idx] = channelData[idx];
         }
 	}
 	m_protect.enter();
@@ -106,7 +117,18 @@ void Eqoder::processBlock (juce::AudioBuffer<float>& data, juce::MidiBuffer& mid
 	int notestopcounter(0);
 	for (auto onefilterunit : m_midifilterunitmap )
 	{
-		onefilterunit.second->processData(m_data);
+		if (m_Parallel)
+		{
+			onefilterunit.second->processData(m_InData,m_data);
+			for (auto cc = 0; cc < totalNrChannels ; ++cc)
+			{
+				std::transform(m_SumData[cc].begin(), m_SumData[cc].end(), m_data[cc].begin(), m_SumData[cc].begin(), std::plus<double>());
+			}
+		}
+		else
+		{
+			onefilterunit.second->processData(m_data);
+		}
 		Envelope::envelopePhases phase;
 		float Level = onefilterunit.second->getEnvelopeStatus(phase);
 		if (phase == Envelope::envelopePhases::Off)
@@ -120,6 +142,15 @@ void Eqoder::processBlock (juce::AudioBuffer<float>& data, juce::MidiBuffer& mid
 			m_softestNote = onefilterunit.first;
 		}
 	}
+	if (m_Parallel)		
+	{
+		for (auto cc = 0; cc < totalNrChannels ; ++cc)
+		{
+			std::copy(m_SumData[cc].begin(), m_SumData[cc].end(), m_data[cc].begin());
+		}
+
+	}
+
 	for (auto kk = 0 ; kk < notestopcounter; ++kk)
 	{
 		m_midifilterunitmap.erase(notestostop[kk]);
@@ -134,7 +165,7 @@ void Eqoder::processBlock (juce::AudioBuffer<float>& data, juce::MidiBuffer& mid
 	{
         auto* channelData = data.getWritePointer (channel);
 		
-		for (auto idx = 0u; idx < data.getNumSamples(); idx++)
+		for (auto idx = 0; idx < data.getNumSamples(); idx++)
         {
             channelData[idx] = m_OutGain*m_data[channel][idx];
 			if (!std::isfinite(channelData[idx] ))
@@ -253,6 +284,8 @@ void Eqoder::updateParameter()
 			onefilterunit.second->setReleaseRate(exp(m_envparameter.m_releaseOld));
 		}		
 	}
+
+	// seriel / parallel switch
 }
 
 void Eqoder::setParameterForNewFilterUnit(int key)
@@ -309,9 +342,6 @@ void Eqoder::prepareParameter(std::unique_ptr<AudioProcessorValueTreeState>& vts
 	m_envparameter.m_releaseOld = paramEnvRelease.defaultValue;
 	m_envparameter.m_sustain = vts->getRawParameterValue(paramEnvSustain.ID[0]);
 	m_envparameter.m_sustainOld = paramEnvSustain.defaultValue;
-
-
-
 
 }
 
@@ -400,6 +430,15 @@ void EqoderParameter::addParameter(std::vector < std::unique_ptr<RangedAudioPara
 			paramEqoderOutGain.unitName,
 			AudioProcessorParameter::genericParameter,
 			[](float value, int MaxLen) { return (String(int((value) * 4 + 0.5) * 0.25, MaxLen) ); },
+			[](const String& text) {return text.getFloatValue(); }));
+		
+		paramVector.push_back(std::make_unique<AudioParameterFloat>(paramEqoderSwitchParallel.ID,
+			paramEqoderSwitchParallel.name,
+			NormalisableRange<float>(paramEqoderSwitchParallel.minValue, paramEqoderSwitchParallel.maxValue),
+			paramEqoderSwitchParallel.defaultValue,
+			paramEqoderSwitchParallel.unitName,
+			AudioProcessorParameter::genericParameter,
+			[](float value, int MaxLen) { return (String(value, MaxLen) ); },
 			[](const String& text) {return text.getFloatValue(); }));
 
 }

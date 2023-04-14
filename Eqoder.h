@@ -45,6 +45,10 @@ public:
 
     std::atomic<float>* m_OutGain;
     float m_OutGainOld;
+
+    std::atomic<float>* m_Parallel;
+    float m_ParallelOld;
+
 };
 
 class Eqoder
@@ -63,6 +67,8 @@ private:
     int m_nrOfChannels;
     CriticalSection m_protect;
     std::vector<std::vector<double>> m_data;	
+    std::vector<std::vector<double>> m_InData;	
+    std::vector<std::vector<double>> m_SumData;	
     double m_fs;
     int m_maxSamples;
     
@@ -76,7 +82,7 @@ private:
     void setParameterForNewFilterUnit(int key);
 
     // Protection limiter
-    BrickwallLimiter m_limiter;
+    BrickwallLimiter<double> m_limiter;
 
     // parameter handling
     void updateParameter();
@@ -95,6 +101,7 @@ private:
         }
     };
     double m_OutGain;
+    bool m_Parallel;
 
 };
 
@@ -186,6 +193,15 @@ const struct
 	float defaultValue = 0.f;
 }paramEqoderOutGain;
 
+const struct
+{
+	const std::string ID = "SwitchParallel";
+	std::string name = "SwitchParallel";
+	std::string unitName = "";
+	float minValue = 0.f;
+	float maxValue = 1.f;
+	float defaultValue = 0.f;
+}paramEqoderSwitchParallel;
 
 
 

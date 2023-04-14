@@ -83,15 +83,21 @@ void EQoderFilterUnit::setSamplerate(double fs)
 }
 int EQoderFilterUnit::processData(std::vector<std::vector<double>>& data)
 {
+    processData(data,data);
+    return 0;
+}
+int EQoderFilterUnit::processData(std::vector<std::vector<double>>& indata,std::vector<std::vector<double>>& outdata)
+{
     // one envelope for all channels
-    m_envdata.resize(data[0].size());
+    m_envdata.resize(indata[0].size());
     m_env.getData(m_envdata);
 
-    for (auto cc = 0u; cc < data.size(); ++cc)
+    for (auto cc = 0u; cc < indata.size(); ++cc)
     {
-        for (auto kk = 0u; kk < m_nroffilters; ++kk)
+        m_filters[cc][0].processDataWithEnvelope(indata[cc],outdata[cc],m_envdata);
+        for (auto kk = 1u; kk < m_nroffilters; ++kk)
         {
-            m_filters[cc][kk].processDataWithEnvelope(data[cc],m_envdata);
+            m_filters[cc][kk].processDataWithEnvelope(outdata[cc],m_envdata);
         }
     }
     return 0;
@@ -152,6 +158,9 @@ void EQoderFilterUnit::checknroffilters()
 
     if (m_nroffilters>m_maxnroffilters)
         m_nroffilters = m_maxnroffilters;
+    
+    if (m_nroffilters < 1)
+        m_nroffilters = 1;
 
 }
 void EQoderFilterUnit::setFilters()

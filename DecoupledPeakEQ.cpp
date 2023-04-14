@@ -50,12 +50,17 @@ int DecoupledPeakEQ::processData(std::vector<double>& data)
 }
 int  DecoupledPeakEQ::processDataWithEnvelope(std::vector<double>& data,const std::vector<double>& envdata)
 {
-     for (auto kk = 0u; kk < data.size(); ++kk)
+    processDataWithEnvelope(data, data, envdata);
+    return 0;   
+}
+int  DecoupledPeakEQ::processDataWithEnvelope(std::vector<double>& indata,std::vector<double>& outdata,const std::vector<double>& envdata)
+{
+     for (auto kk = 0u; kk < indata.size(); ++kk)
     //for(auto in : data)
     {
         // allpass first
         // k2 first
-        double in = data[kk];
+        double in = indata[kk];
         double upper2 = m_k2*(in - m_state2);
         // k1
         double out2 = in + upper2;
@@ -65,11 +70,11 @@ int  DecoupledPeakEQ::processDataWithEnvelope(std::vector<double>& data,const st
         m_state1 = upper1 + out2;
 
         // gain
-        data[kk] = 0.5*(in + out) + 0.5*(((m_gain-1.0)*envdata[kk])+1.0) *(in - out);
+        outdata[kk] = 0.5*(in + out) + 0.5*(((m_gain-1.0)*envdata[kk])+1.0) *(in - out);
 
-        if (!std::isfinite(data[kk] ))
+        if (!std::isfinite(outdata[kk] ))
         {
-            switch(std::fpclassify(data[kk])) 
+            switch(std::fpclassify(outdata[kk])) 
             {
                 case FP_INFINITE:  DBG( "Inf");break;
                 case FP_NAN:       DBG( "NaN");break;

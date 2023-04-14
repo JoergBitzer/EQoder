@@ -35,6 +35,7 @@ public:
     ~DecoupledPeakEQ();
     int processData(std::vector<double>& data);
     int processDataWithEnvelope(std::vector<double>& data,const std::vector<double>& envdata);
+    int processDataWithEnvelope(std::vector<double>& indata,std::vector<double>& outdata,const std::vector<double>& envdata);
     // processData(AudioBlock audio); // alternative with Juce AudioBlock
     void reset();
     void setGain(double newGain);
