@@ -564,7 +564,9 @@ void EqoderParameterComponent::resized()
 	auto s = r;
 	auto t = r;
 
-	t = s.removeFromBottom(scaleFactor*(GLOBAL_MIN_LABEL_HEIGHT/2+GLOBAL_MIN_ROTARY_WIDTH));
+	t = s.removeFromTop(scaleFactor*(GLOBAL_MIN_LABEL_HEIGHT/2+GLOBAL_MIN_ROTARY_WIDTH));
+	// labels are not considered as part of the rotary ==> additional offset necessary
+	t.setY(t.getY()+GLOBAL_MIN_LABEL_HEIGHT*scaleFactor);
 	m_NrOfFilterUnitsSlider.setBounds(t.removeFromLeft(scaleFactor*GLOBAL_MIN_ROTARY_WIDTH));
 	m_NrOfFilterUnitsSlider.setTextBoxStyle(Slider::TextEntryBoxPosition::TextBoxBelow, true,scaleFactor* GLOBAL_MIN_ROTARY_TB_WIDTH, scaleFactor*GLOBAL_MIN_ROTARY_TB_HEIGHT);
 	t.removeFromLeft(scaleFactor*GLOBAL_MIN_DISTANCE);	
@@ -597,7 +599,7 @@ void EqoderParameterComponent::resized()
 	m_BWSpreadSlider.setTextBoxStyle(Slider::TextEntryBoxPosition::TextBoxBelow, true,scaleFactor* GLOBAL_MIN_ROTARY_TB_WIDTH, scaleFactor*GLOBAL_MIN_ROTARY_TB_HEIGHT);
 	t.removeFromLeft(scaleFactor*GLOBAL_MIN_DISTANCE);	
 
-	m_OutGainSlider.setBounds(t.removeFromLeft(scaleFactor*GLOBAL_MIN_ROTARY_WIDTH));
+	m_OutGainSlider.setBounds(t.removeFromRight(scaleFactor*GLOBAL_MIN_ROTARY_WIDTH));
 	m_OutGainSlider.setTextBoxStyle(Slider::TextEntryBoxPosition::TextBoxBelow, true,scaleFactor* GLOBAL_MIN_ROTARY_TB_WIDTH, scaleFactor*GLOBAL_MIN_ROTARY_TB_HEIGHT);
 	t.removeFromLeft(scaleFactor*GLOBAL_MIN_DISTANCE);	
 
