@@ -28,7 +28,7 @@ EQoderAudioProcessor::EQoderAudioProcessor()
     m_eqoderparamter.addParameter(m_paramVector);
     m_envparameter.addParameter(m_paramVector,0);
 
-    m_parameterVTS = std::make_unique<AudioProcessorValueTreeState>(*this, nullptr, Identifier("FiltarborVTS"),
+    m_parameterVTS = std::make_unique<AudioProcessorValueTreeState>(*this, nullptr, Identifier("EquoderVTS"),
         AudioProcessorValueTreeState::ParameterLayout(m_paramVector.begin(), m_paramVector.end()));
 
 	m_presets.setAudioValueTreeState(m_parameterVTS.get());
@@ -206,7 +206,12 @@ void EQoderAudioProcessor::setStateInformation (const void* data, int sizeInByte
 
 	if (xmlState.get() != nullptr)
 		if (xmlState->hasTagName(m_parameterVTS->state.getType()))
+        {
+
+            String presetname(xmlState->getStringAttribute("presetname"));
+            m_presets.setCurrentPresetName(presetname);
 			m_parameterVTS->replaceState(ValueTree::fromXml(*xmlState));
+        }
 
 }
 

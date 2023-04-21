@@ -106,8 +106,8 @@ void Eqoder::processBlock (juce::AudioBuffer<float>& data, juce::MidiBuffer& mid
         // ..do something to the data...
         for (auto idx = 0; idx < data.getNumSamples(); idx++)
         {
-            m_data[channel][idx] = channelData[idx];
-            m_InData[channel][idx] = channelData[idx];
+            m_data[channel][idx] = m_OutGain*channelData[idx];
+            m_InData[channel][idx] = m_OutGain*channelData[idx];
         }
 	}
 	m_protect.enter();
@@ -167,7 +167,7 @@ void Eqoder::processBlock (juce::AudioBuffer<float>& data, juce::MidiBuffer& mid
 		
 		for (auto idx = 0; idx < data.getNumSamples(); idx++)
         {
-            channelData[idx] = m_OutGain*m_data[channel][idx];
+            channelData[idx] = m_data[channel][idx];
 			if (!std::isfinite(channelData[idx] ))
 			{
 				switch(std::fpclassify(channelData[idx])) 
@@ -465,7 +465,7 @@ EqoderParameterComponent::EqoderParameterComponent(AudioProcessorValueTreeState&
 	// m_NrOfFiltersSlider.setTextBoxStyle(Slider::TextEntryBoxPosition::TextBoxBelow, true, 60, 20);
 	m_NrOfFiltersAttachment = std::make_unique<AudioProcessorValueTreeState::SliderAttachment>(m_vts, paramEqoderNrOfFilters.ID, m_NrOfFiltersSlider);
 	addAndMakeVisible(m_NrOfFiltersSlider);
-	m_NrOfFiltersSlider.onValueChange = [this]() {if (somethingChanged != nullptr) somethingChanged(); };
+	m_NrOfFiltersSlider.onValueChange = [this]() {m_NrOfFilters = m_NrOfFiltersSlider.getValue(); repaint(); if (somethingChanged != nullptr) somethingChanged(); };
 
 	m_GainF0Label.setText("GainF0", NotificationType::dontSendNotification);
 	m_GainF0Label.setJustificationType(Justification::centred);
@@ -476,7 +476,7 @@ EqoderParameterComponent::EqoderParameterComponent(AudioProcessorValueTreeState&
 	// m_GainF0Slider.setTextBoxStyle(Slider::TextEntryBoxPosition::TextBoxBelow, true, 60, 20);
 	m_GainF0Attachment = std::make_unique<AudioProcessorValueTreeState::SliderAttachment>(m_vts, paramEqoderGainF0.ID, m_GainF0Slider);
 	addAndMakeVisible(m_GainF0Slider);
-	m_GainF0Slider.onValueChange = [this]() {if (somethingChanged != nullptr) somethingChanged(); };
+	m_GainF0Slider.onValueChange = [this]() {m_gainStart = m_GainF0Slider.getValue(); repaint(); if (somethingChanged != nullptr) somethingChanged(); };
 
 	m_GainFendLabel.setText("GainFend", NotificationType::dontSendNotification);
 	m_GainFendLabel.setJustificationType(Justification::centred);
@@ -487,7 +487,7 @@ EqoderParameterComponent::EqoderParameterComponent(AudioProcessorValueTreeState&
 	// m_GainFendSlider.setTextBoxStyle(Slider::TextEntryBoxPosition::TextBoxBelow, true, 60, 20);
 	m_GainFendAttachment = std::make_unique<AudioProcessorValueTreeState::SliderAttachment>(m_vts, paramEqoderGainFend.ID, m_GainFendSlider);
 	addAndMakeVisible(m_GainFendSlider);
-	m_GainFendSlider.onValueChange = [this]() {if (somethingChanged != nullptr) somethingChanged(); };
+	m_GainFendSlider.onValueChange = [this]() {m_gainEnd = m_GainFendSlider.getValue(); repaint(); if (somethingChanged != nullptr) somethingChanged(); };
 
 	m_GainFormLabel.setText("GainForm", NotificationType::dontSendNotification);
 	m_GainFormLabel.setJustificationType(Justification::centred);
@@ -498,7 +498,7 @@ EqoderParameterComponent::EqoderParameterComponent(AudioProcessorValueTreeState&
 	// m_GainFormSlider.setTextBoxStyle(Slider::TextEntryBoxPosition::TextBoxBelow, true, 60, 20);
 	m_GainFormAttachment = std::make_unique<AudioProcessorValueTreeState::SliderAttachment>(m_vts, paramEqoderGainForm.ID, m_GainFormSlider);
 	addAndMakeVisible(m_GainFormSlider);
-	m_GainFormSlider.onValueChange = [this]() {if (somethingChanged != nullptr) somethingChanged(); };
+	m_GainFormSlider.onValueChange = [this]() {m_Form = m_GainFormSlider.getValue(); repaint(); if(somethingChanged != nullptr) somethingChanged(); };
 
 	m_QLabel.setText("Q", NotificationType::dontSendNotification);
 	m_QLabel.setJustificationType(Justification::centred);
@@ -509,7 +509,7 @@ EqoderParameterComponent::EqoderParameterComponent(AudioProcessorValueTreeState&
 	// m_QSlider.setTextBoxStyle(Slider::TextEntryBoxPosition::TextBoxBelow, true, 60, 20);
 	m_QAttachment = std::make_unique<AudioProcessorValueTreeState::SliderAttachment>(m_vts, paramEqoderQ.ID, m_QSlider);
 	addAndMakeVisible(m_QSlider);
-	m_QSlider.onValueChange = [this]() {if (somethingChanged != nullptr) somethingChanged(); };
+	m_QSlider.onValueChange = [this]() {m_Q = m_QSlider.getValue(); repaint(); if (somethingChanged != nullptr) somethingChanged(); };
 
 	m_FreqSpreadLabel.setText("FreqSpread", NotificationType::dontSendNotification);
 	m_FreqSpreadLabel.setJustificationType(Justification::centred);
@@ -520,7 +520,7 @@ EqoderParameterComponent::EqoderParameterComponent(AudioProcessorValueTreeState&
 	// m_FreqSpreadSlider.setTextBoxStyle(Slider::TextEntryBoxPosition::TextBoxBelow, true, 60, 20);
 	m_FreqSpreadAttachment = std::make_unique<AudioProcessorValueTreeState::SliderAttachment>(m_vts, paramEqoderFreqSpread.ID, m_FreqSpreadSlider);
 	addAndMakeVisible(m_FreqSpreadSlider);
-	m_FreqSpreadSlider.onValueChange = [this]() {if (somethingChanged != nullptr) somethingChanged(); };
+	m_FreqSpreadSlider.onValueChange = [this]() {m_FreqSpread = m_FreqSpreadSlider.getValue(); repaint(); if (somethingChanged != nullptr) somethingChanged(); };
 
 	m_BWSpreadLabel.setText("BWSpread", NotificationType::dontSendNotification);
 	m_BWSpreadLabel.setJustificationType(Justification::centred);
@@ -531,7 +531,7 @@ EqoderParameterComponent::EqoderParameterComponent(AudioProcessorValueTreeState&
 	// m_BWSpreadSlider.setTextBoxStyle(Slider::TextEntryBoxPosition::TextBoxBelow, true, 60, 20);
 	m_BWSpreadAttachment = std::make_unique<AudioProcessorValueTreeState::SliderAttachment>(m_vts, paramEqoderBWSpread.ID, m_BWSpreadSlider);
 	addAndMakeVisible(m_BWSpreadSlider);
-	m_BWSpreadSlider.onValueChange = [this]() {if (somethingChanged != nullptr) somethingChanged(); };
+	m_BWSpreadSlider.onValueChange = [this]() {m_BWSpread = m_BWSpreadSlider.getValue(); repaint(); if(somethingChanged != nullptr) somethingChanged(); };
 
 	m_OutGainLabel.setText("OutGain", NotificationType::dontSendNotification);
 	m_OutGainLabel.setJustificationType(Justification::centred);
@@ -549,7 +549,55 @@ EqoderParameterComponent::EqoderParameterComponent(AudioProcessorValueTreeState&
 
 void EqoderParameterComponent::paint(Graphics& g)
 {
+	float scaleFactor = m_scaleFactor;
 	g.fillAll((getLookAndFeel().findColour(ResizableWindow::backgroundColourId)).darker(0.2));
+	g.setColour(JadeTeal);
+	g.fillRect ((EQDISP_XPOS)*scaleFactor, (EQDISP_YPOS)*scaleFactor, (EQDISP_WIDTH)*scaleFactor, (EQDISP_HEIGHT)*scaleFactor);
+	g.setColour(juce::Colours::black);
+	float scaleStart = (EQDISP_XPOS+10);
+	float scaleWidth = (EQDISP_XPOS + EQDISP_WIDTH - 10);
+	float yscaleStart = (EQDISP_YPOS + EQDISP_HEIGHT-10);
+	float yscaleMax = (EQDISP_YPOS+10);
+	float yscaleHeight = -yscaleMax + yscaleStart;
+	juce::Line <float> up(scaleStart*scaleFactor, yscaleStart*scaleFactor,
+							 scaleStart*scaleFactor,yscaleMax*scaleFactor);
+	g.drawArrow(up,3*scaleFactor,10*scaleFactor,20*scaleFactor);
+
+	juce::Line <float> right((EQDISP_XPOS+2)*scaleFactor, yscaleStart*scaleFactor,
+							 scaleWidth*scaleFactor,yscaleStart*scaleFactor);
+	g.drawArrow(right,3*scaleFactor,10*scaleFactor,20*scaleFactor);
+
+	// draw filter
+	g.setColour(JadeRed);
+	
+	float oneoctave = scaleWidth/40; 
+	float oneQ = scaleWidth/150; 
+	for (auto kk = 0; kk < int(m_NrOfFilters); kk++)
+	{
+		// normalised xval
+		float normxval = float(kk)/(m_NrOfFilters-1);
+		if (m_NrOfFilters == 1) // for = 1 and kk = 0 normval is NAN (avoid this here)
+			normxval = 0;
+		float deformed_normx = powf(normxval,m_Form);
+		float gain = (m_gainEnd-m_gainStart)*deformed_normx + m_gainStart;
+		float diffX = oneQ*4*pow(double(kk+1),m_BWSpread)/exp(m_Q);
+		float startX = (scaleStart + kk*oneoctave*pow(2.0,m_FreqSpread))*scaleFactor;
+		float startY = (yscaleMax+10) + (paramEqoderGainF0.maxValue - gain)/paramEqoderGainF0.maxValue * (yscaleHeight-10);
+		float endX = (scaleStart + kk*oneoctave*pow(2.0,m_FreqSpread) - diffX )*scaleFactor;
+		float endY = (yscaleStart)*scaleFactor;
+		if (endX < EQDISP_XPOS)
+			endX = EQDISP_XPOS;
+		if (endX > EQDISP_XPOS + EQDISP_WIDTH)
+			endX = EQDISP_XPOS + EQDISP_WIDTH;
+		g.drawLine(startX, startY, endX, endY,3*scaleFactor);
+		endX = (scaleStart + kk*oneoctave*pow(2.0,m_FreqSpread) + diffX )*scaleFactor;
+		if (endX < EQDISP_XPOS)
+			endX = EQDISP_XPOS;
+		if (endX > EQDISP_XPOS + EQDISP_WIDTH)
+			endX = EQDISP_XPOS + EQDISP_WIDTH;
+		g.drawLine(startX, startY, endX, endY,3*scaleFactor);
+	}
+
 
 }
 void EqoderParameterComponent::resized()

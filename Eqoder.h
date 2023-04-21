@@ -9,6 +9,7 @@
 #include "EqoderGUISettings.h" // necessary for GUI Elements
 #include "Envelope.h"
 #include "BrickwallLimiter.h"
+#include "JadeLookAndFeel.h"
 
 const int g_NrOfFilterUnits(8);
 const int g_maxChannels(8);
@@ -112,7 +113,7 @@ const struct
 	std::string unitName = "";
 	float minValue = 1.f;
 	float maxValue = 8.f;
-	float defaultValue = 4.f;
+	float defaultValue = 6.f;
 }paramEqoderNrOfFilterUnits;
 const struct
 {
@@ -149,8 +150,8 @@ const struct
 	const std::string ID = "GainForm";
 	std::string name = "Form of Gains";
 	std::string unitName = "";
-	float minValue = 0.f;
-	float maxValue = 20.f;
+	float minValue = 0.05f;
+	float maxValue = 2.f;
 	float defaultValue = 1.f;
 }paramEqoderGainForm;
 
@@ -256,5 +257,6 @@ private:
     std::unique_ptr<AudioProcessorValueTreeState::SliderAttachment> m_OutGainAttachment;
 
     float m_scaleFactor;
+    float m_NrOfFilters, m_gainStart, m_gainEnd, m_Q, m_Form, m_BWSpread, m_FreqSpread;
 
 };

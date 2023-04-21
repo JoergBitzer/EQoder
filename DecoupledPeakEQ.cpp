@@ -87,6 +87,11 @@ int  DecoupledPeakEQ::processDataWithEnvelope(std::vector<double>& indata,std::v
 
 
     }
+    if (m_state1>1e12)
+        reset();
+
+    if (m_state2>1e12)
+        reset();
 
     return 0;   
 }

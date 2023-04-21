@@ -46,32 +46,32 @@ void EQoderAudioProcessorEditor::paint (juce::Graphics& g)
 
 }
 const int g_minPresetHandlerHeight(30);
-const float g_midikeyboardratio(0.13);
+const float g_midikeyboardHeight(60);
 void EQoderAudioProcessorEditor::resized()
 {
     int height = getHeight();
+	int width = getWidth();
+	float scaleFactor = float(width)/g_minGuiSize_x;
     // necessary to change fontsize of comboboxes and PopUpmenus
     // 0.5 is a good compromisecould be slightly higher or lower
     m_jadeLAF.setFontSize(0.5*height*g_minPresetHandlerHeight/g_minGuiSize_y);
     // top presethandler
-    m_presetGUI.setBounds(0, 0, getWidth(), height*g_minPresetHandlerHeight/g_minGuiSize_y);
+    m_presetGUI.setBounds(0, 0, getWidth(), scaleFactor*g_minPresetHandlerHeight);
     // bottom a small midkeyboard
 #if WITH_MIDIKEYBOARD    
-    m_keyboard.setBounds(0, height*(1-g_midikeyboardratio), getWidth(), height*g_midikeyboardratio);
+    m_keyboard.setBounds(0, height-scaleFactor*g_midikeyboardHeight, width, scaleFactor*g_midikeyboardHeight);
 #endif
     // This is generally where you'll want to lay out the positions of any
     // subcomponents in your editor..
 	// int newWidth = getWidth();
 	// int newHeight = getHeight();
 
-	int width = getWidth();
 
-	float scaleFactor = float(width)/g_minGuiSize_x;
     m_eqparamcomponent.setScaleFactor(scaleFactor);
-    m_eqparamcomponent.setBounds(scaleFactor*EQODER_MIN_XPOS,scaleFactor*EQODER_MIN_YPOS, scaleFactor*EQODER_MIN_WIDTH, scaleFactor*EQODER_MIN_HEIGHT);
+    m_eqparamcomponent.setBounds(scaleFactor*(EQODER_MIN_XPOS),scaleFactor*(EQODER_MIN_YPOS), scaleFactor*(EQODER_MIN_WIDTH), scaleFactor*(EQODER_MIN_HEIGHT));
     
     m_envelopecomponent.setScaleFactor(scaleFactor);
-    m_envelopecomponent.setBounds(scaleFactor*ENVELOPE1_MIN_XPOS,scaleFactor*ENVELOPE1_MIN_YPOS,scaleFactor*ENVELOPE1_MIN_WIDTH,scaleFactor*ENVELOPE1_MIN_HEIGHT);
+    m_envelopecomponent.setBounds(scaleFactor*(ENVELOPE1_MIN_XPOS),scaleFactor*(ENVELOPE1_MIN_YPOS),scaleFactor*(ENVELOPE1_MIN_WIDTH),scaleFactor*(ENVELOPE1_MIN_HEIGHT));
  
-    m_leveldisplay.setBounds(scaleFactor*DISPLAY_MIN_XPOS,scaleFactor*DISPLAY_MIN_YPOS, scaleFactor*DISPLAY_MIN_WIDTH, scaleFactor*DISPLAY_MIN_HEIGHT);
+    m_leveldisplay.setBounds(scaleFactor*(DISPLAY_MIN_XPOS),scaleFactor*(DISPLAY_MIN_YPOS), scaleFactor*(DISPLAY_MIN_WIDTH), scaleFactor*(DISPLAY_MIN_HEIGHT));
  }
