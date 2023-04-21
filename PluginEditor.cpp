@@ -40,10 +40,15 @@ EQoderAudioProcessorEditor::~EQoderAudioProcessorEditor()
 //==============================================================================
 void EQoderAudioProcessorEditor::paint (juce::Graphics& g)
 {
+   	int width = getWidth();
+	float scaleFactor = float(width)/g_minGuiSize_x;
+ 
     // (Our component is opaque, so we must completely fill the background with a solid colour)
     g.fillAll (getLookAndFeel().findColour (juce::ResizableWindow::backgroundColourId));
 
-
+    g.setColour(juce::Colours::black);
+	g.setFont(60*scaleFactor);
+	g.drawText("EQoder",5*scaleFactor,235*scaleFactor,200*scaleFactor,100*scaleFactor,juce::Justification::centredLeft);
 }
 const int g_minPresetHandlerHeight(30);
 const float g_midikeyboardHeight(60);
