@@ -582,22 +582,22 @@ void EqoderParameterComponent::paint(Graphics& g)
 		float gain = (m_gainEnd-m_gainStart)*deformed_normx + m_gainStart;
 		float diffX = oneQ*4*pow(double(kk+1),m_BWSpread)/exp(m_Q);
 		float startX = (scaleStart + kk*oneoctave*pow(2.0,m_FreqSpread))*scaleFactor;
-		float startY = (yscaleMax+10) + (paramEqoderGainF0.maxValue - gain)/paramEqoderGainF0.maxValue * (yscaleHeight-10);
-		float endX = (scaleStart + kk*oneoctave*pow(2.0,m_FreqSpread) - diffX )*scaleFactor;
+		float startY = ((yscaleMax+10) + (paramEqoderGainF0.maxValue - gain)/paramEqoderGainF0.maxValue * (yscaleHeight-10))*scaleFactor;
+		float endX = (scaleStart + kk*oneoctave*pow(2.0,m_FreqSpread) - diffX );
 		float endY = (yscaleStart)*scaleFactor;
 		if (endX < EQDISP_XPOS)
 			endX = EQDISP_XPOS;
 		if (endX > EQDISP_XPOS + EQDISP_WIDTH)
 			endX = EQDISP_XPOS + EQDISP_WIDTH;
-		g.drawLine(startX, startY, endX, endY,3*scaleFactor);
-		endX = (scaleStart + kk*oneoctave*pow(2.0,m_FreqSpread) + diffX )*scaleFactor;
+		g.drawLine(startX, startY, endX*scaleFactor, endY,3*scaleFactor);
+		endX = (scaleStart + kk*oneoctave*pow(2.0,m_FreqSpread) + diffX );
 		if (endX < EQDISP_XPOS)
 			endX = EQDISP_XPOS;
 		if (endX > EQDISP_XPOS + EQDISP_WIDTH)
 			endX = EQDISP_XPOS + EQDISP_WIDTH;
-		g.drawLine(startX, startY, endX, endY,3*scaleFactor);
+		g.drawLine(startX, startY, endX*scaleFactor, endY,3*scaleFactor);
 	}
-
+	
 
 }
 void EqoderParameterComponent::resized()

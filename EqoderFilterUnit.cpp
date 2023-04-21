@@ -123,6 +123,7 @@ void EQoderFilterUnit::setFundamentalFrequency(double freq, double Velocity)
     m_velocity = Velocity;
     m_env.setMaxLevel(m_velocity);
     m_env.NoteOn();
+    reset();
 }
 
 void EQoderFilterUnit::setBWSpread(double bwspread)
