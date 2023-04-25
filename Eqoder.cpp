@@ -13,6 +13,7 @@ Eqoder::Eqoder()
 	}
 	m_OutGain = 1.0;
 	m_Parallel = false;
+	m_midifilterunitmap.clear();
 }
 Eqoder::~Eqoder()
 {
@@ -28,19 +29,22 @@ void Eqoder::prepareToPlay (double sampleRate, int samplesPerBlock,int nrofchann
 	m_data.clear();
 	m_InData.clear();
 	m_SumData.clear();
+	m_midifilterunitmap.clear();
 	m_limiter.prepareToPlay(sampleRate,m_nrOfChannels);
 }
 void Eqoder::processBlock (juce::AudioBuffer<float>& data, juce::MidiBuffer& mididata)
 {
     // first analyse Mididata
-	
+	int midicount = 0;
     for (const MidiMessageMetadata metadata : mididata)
     {
 		 if (metadata.numBytes == 3)
 		 {
+		
 			 MidiMessage msg= metadata.getMessage();
 			 if(msg.isNoteOn())
 			 {
+				midicount++;
 				int midiNoteNr = msg.getNoteNumber();
 				float Velocity = 1.0/127.0 * msg.getVelocity();
 				double freqNote = msg.getMidiNoteInHertz(midiNoteNr);
@@ -52,9 +56,11 @@ void Eqoder::processBlock (juce::AudioBuffer<float>& data, juce::MidiBuffer& mid
 				}
 				else
 				{
-					m_unitCounter++;
+									
 					if (m_unitCounter < m_maxunits) // Resources are available
 					{
+
+						
 						m_midifilterunitmap[midiNoteNr] = m_pointerPool.acquire();
 						setParameterForNewFilterUnit(midiNoteNr);
 						m_midifilterunitmap[midiNoteNr]->setFundamentalFrequency(freqNote,Velocity);
@@ -62,7 +68,27 @@ void Eqoder::processBlock (juce::AudioBuffer<float>& data, juce::MidiBuffer& mid
 					else // Steeling
 					{
 						m_unitCounter--;
-						m_midifilterunitmap.erase(m_softestNote);
+						if (m_midifilterunitmap.contains(m_softestNote))
+							m_midifilterunitmap.erase(m_softestNote);
+						else // erase lowest note
+						{
+							int lowestkey = 127;
+							for (const auto& [key, _] : m_midifilterunitmap) 
+							{
+								if (key < lowestkey)
+									lowestkey = key;
+
+								DBG(String(key));
+								DBG(midicount);
+    							//itemKeys.push_back(key);
+								if (key != m_softestNote)
+									DBG("Stop");
+							}
+							m_midifilterunitmap.erase(lowestkey);
+						}
+						DBG(String(m_softestNote) + "-");
+						
+
 						if (!m_pointerPool.empty())
 						{
 							m_midifilterunitmap[midiNoteNr] = m_pointerPool.acquire();
@@ -71,6 +97,7 @@ void Eqoder::processBlock (juce::AudioBuffer<float>& data, juce::MidiBuffer& mid
 						}
 						
 					}
+					m_unitCounter++;
 				}
 			 }
  			 if(msg.isNoteOff())
@@ -106,15 +133,18 @@ void Eqoder::processBlock (juce::AudioBuffer<float>& data, juce::MidiBuffer& mid
         // ..do something to the data...
         for (auto idx = 0; idx < data.getNumSamples(); idx++)
         {
-            m_data[channel][idx] = channelData[idx];
-            m_InData[channel][idx] = channelData[idx];
+            m_data[channel][idx] = m_OutGain*channelData[idx];
+            m_InData[channel][idx] = m_OutGain*channelData[idx];
         }
 	}
 	m_protect.enter();
 	
 	float minLevel = 1.f;
+	float minLevelRelease = 1.f;
 	int notestostop[g_NrOfFilterUnits];
 	int notestopcounter(0);
+	int softnote = -1;
+	int softnoterelease = -1;
 	for (auto onefilterunit : m_midifilterunitmap )
 	{
 		if (m_Parallel)
@@ -139,8 +169,22 @@ void Eqoder::processBlock (juce::AudioBuffer<float>& data, juce::MidiBuffer& mid
 		if (Level< minLevel)
 		{
 			minLevel = Level;
-			m_softestNote = onefilterunit.first;
+			softnote = onefilterunit.first;
 		}
+		if (Level< minLevelRelease & phase != Envelope::envelopePhases::Attack)
+		{
+			minLevelRelease = Level;
+			softnoterelease = onefilterunit.first;
+		}
+		if (minLevelRelease != 1.f)
+		{
+			m_softestNote = softnoterelease;
+		}
+		else
+		{
+			m_softestNote = softnote;
+		}
+
 	}
 	if (m_Parallel)		
 	{
@@ -153,6 +197,12 @@ void Eqoder::processBlock (juce::AudioBuffer<float>& data, juce::MidiBuffer& mid
 
 	for (auto kk = 0 ; kk < notestopcounter; ++kk)
 	{
+		for (const auto& [key, _] : m_midifilterunitmap) 
+		{
+			DBG(String(key) + "key");
+			//itemKeys.push_back(key);
+		}
+		DBG(String(notestostop[kk]) + "notetostop");
 		m_midifilterunitmap.erase(notestostop[kk]);
 		m_unitCounter--;
 	}
@@ -167,7 +217,7 @@ void Eqoder::processBlock (juce::AudioBuffer<float>& data, juce::MidiBuffer& mid
 		
 		for (auto idx = 0; idx < data.getNumSamples(); idx++)
         {
-            channelData[idx] = m_OutGain*m_data[channel][idx];
+            channelData[idx] = m_data[channel][idx];
 			if (!std::isfinite(channelData[idx] ))
 			{
 				switch(std::fpclassify(channelData[idx])) 
@@ -182,7 +232,10 @@ void Eqoder::processBlock (juce::AudioBuffer<float>& data, juce::MidiBuffer& mid
 			}	
         }
 	}
-
+	if (m_midifilterunitmap.size() != m_unitCounter)
+	{
+		DBG("Somethings wrong");
+	}
 }
 
 void Eqoder::updateParameter()
@@ -374,7 +427,7 @@ void EqoderParameter::addParameter(std::vector < std::unique_ptr<RangedAudioPara
 		paramEqoderGainF0.defaultValue,
 		paramEqoderGainF0.unitName,
 		AudioProcessorParameter::genericParameter,
-		[](float value, int MaxLen) { return (String(0.1*int(10.0*value), MaxLen)); },
+		[](float value, int MaxLen) { return (String(0.1*int(10.0*value), MaxLen) + " " + paramEqoderGainF0.unitName); },
 		[](const String& text) {return text.getFloatValue(); }));
 
     	paramVector.push_back(std::make_unique<AudioParameterFloat>(paramEqoderGainFend.ID,
@@ -383,7 +436,7 @@ void EqoderParameter::addParameter(std::vector < std::unique_ptr<RangedAudioPara
 		paramEqoderGainFend.defaultValue,
 		paramEqoderGainFend.unitName,
 		AudioProcessorParameter::genericParameter,
-		[](float value, int MaxLen) { return (String(0.1*int(10.0*value), MaxLen)); },
+		[](float value, int MaxLen) { return (String(0.1*int(10.0*value), MaxLen) + " " + paramEqoderGainF0.unitName); },
 		[](const String& text) {return text.getFloatValue(); }));
 
     	
@@ -429,7 +482,7 @@ void EqoderParameter::addParameter(std::vector < std::unique_ptr<RangedAudioPara
 			paramEqoderOutGain.defaultValue,
 			paramEqoderOutGain.unitName,
 			AudioProcessorParameter::genericParameter,
-			[](float value, int MaxLen) { return (String(int((value) * 4 + 0.5) * 0.25, MaxLen) ); },
+			[](float value, int MaxLen) { return (String(int((value) * 4 + 0.5) * 0.25, MaxLen) + " " + paramEqoderGainF0.unitName); },
 			[](const String& text) {return text.getFloatValue(); }));
 		
 		paramVector.push_back(std::make_unique<AudioParameterFloat>(paramEqoderSwitchParallel.ID,
@@ -465,7 +518,7 @@ EqoderParameterComponent::EqoderParameterComponent(AudioProcessorValueTreeState&
 	// m_NrOfFiltersSlider.setTextBoxStyle(Slider::TextEntryBoxPosition::TextBoxBelow, true, 60, 20);
 	m_NrOfFiltersAttachment = std::make_unique<AudioProcessorValueTreeState::SliderAttachment>(m_vts, paramEqoderNrOfFilters.ID, m_NrOfFiltersSlider);
 	addAndMakeVisible(m_NrOfFiltersSlider);
-	m_NrOfFiltersSlider.onValueChange = [this]() {if (somethingChanged != nullptr) somethingChanged(); };
+	m_NrOfFiltersSlider.onValueChange = [this]() {m_NrOfFilters = m_NrOfFiltersSlider.getValue(); repaint(); if (somethingChanged != nullptr) somethingChanged(); };
 
 	m_GainF0Label.setText("GainF0", NotificationType::dontSendNotification);
 	m_GainF0Label.setJustificationType(Justification::centred);
@@ -476,7 +529,7 @@ EqoderParameterComponent::EqoderParameterComponent(AudioProcessorValueTreeState&
 	// m_GainF0Slider.setTextBoxStyle(Slider::TextEntryBoxPosition::TextBoxBelow, true, 60, 20);
 	m_GainF0Attachment = std::make_unique<AudioProcessorValueTreeState::SliderAttachment>(m_vts, paramEqoderGainF0.ID, m_GainF0Slider);
 	addAndMakeVisible(m_GainF0Slider);
-	m_GainF0Slider.onValueChange = [this]() {if (somethingChanged != nullptr) somethingChanged(); };
+	m_GainF0Slider.onValueChange = [this]() {m_gainStart = m_GainF0Slider.getValue(); repaint(); if (somethingChanged != nullptr) somethingChanged(); };
 
 	m_GainFendLabel.setText("GainFend", NotificationType::dontSendNotification);
 	m_GainFendLabel.setJustificationType(Justification::centred);
@@ -487,7 +540,7 @@ EqoderParameterComponent::EqoderParameterComponent(AudioProcessorValueTreeState&
 	// m_GainFendSlider.setTextBoxStyle(Slider::TextEntryBoxPosition::TextBoxBelow, true, 60, 20);
 	m_GainFendAttachment = std::make_unique<AudioProcessorValueTreeState::SliderAttachment>(m_vts, paramEqoderGainFend.ID, m_GainFendSlider);
 	addAndMakeVisible(m_GainFendSlider);
-	m_GainFendSlider.onValueChange = [this]() {if (somethingChanged != nullptr) somethingChanged(); };
+	m_GainFendSlider.onValueChange = [this]() {m_gainEnd = m_GainFendSlider.getValue(); repaint(); if (somethingChanged != nullptr) somethingChanged(); };
 
 	m_GainFormLabel.setText("GainForm", NotificationType::dontSendNotification);
 	m_GainFormLabel.setJustificationType(Justification::centred);
@@ -498,7 +551,7 @@ EqoderParameterComponent::EqoderParameterComponent(AudioProcessorValueTreeState&
 	// m_GainFormSlider.setTextBoxStyle(Slider::TextEntryBoxPosition::TextBoxBelow, true, 60, 20);
 	m_GainFormAttachment = std::make_unique<AudioProcessorValueTreeState::SliderAttachment>(m_vts, paramEqoderGainForm.ID, m_GainFormSlider);
 	addAndMakeVisible(m_GainFormSlider);
-	m_GainFormSlider.onValueChange = [this]() {if (somethingChanged != nullptr) somethingChanged(); };
+	m_GainFormSlider.onValueChange = [this]() {m_Form = m_GainFormSlider.getValue(); repaint(); if(somethingChanged != nullptr) somethingChanged(); };
 
 	m_QLabel.setText("Q", NotificationType::dontSendNotification);
 	m_QLabel.setJustificationType(Justification::centred);
@@ -509,7 +562,7 @@ EqoderParameterComponent::EqoderParameterComponent(AudioProcessorValueTreeState&
 	// m_QSlider.setTextBoxStyle(Slider::TextEntryBoxPosition::TextBoxBelow, true, 60, 20);
 	m_QAttachment = std::make_unique<AudioProcessorValueTreeState::SliderAttachment>(m_vts, paramEqoderQ.ID, m_QSlider);
 	addAndMakeVisible(m_QSlider);
-	m_QSlider.onValueChange = [this]() {if (somethingChanged != nullptr) somethingChanged(); };
+	m_QSlider.onValueChange = [this]() {m_Q = m_QSlider.getValue(); repaint(); if (somethingChanged != nullptr) somethingChanged(); };
 
 	m_FreqSpreadLabel.setText("FreqSpread", NotificationType::dontSendNotification);
 	m_FreqSpreadLabel.setJustificationType(Justification::centred);
@@ -520,7 +573,7 @@ EqoderParameterComponent::EqoderParameterComponent(AudioProcessorValueTreeState&
 	// m_FreqSpreadSlider.setTextBoxStyle(Slider::TextEntryBoxPosition::TextBoxBelow, true, 60, 20);
 	m_FreqSpreadAttachment = std::make_unique<AudioProcessorValueTreeState::SliderAttachment>(m_vts, paramEqoderFreqSpread.ID, m_FreqSpreadSlider);
 	addAndMakeVisible(m_FreqSpreadSlider);
-	m_FreqSpreadSlider.onValueChange = [this]() {if (somethingChanged != nullptr) somethingChanged(); };
+	m_FreqSpreadSlider.onValueChange = [this]() {m_FreqSpread = m_FreqSpreadSlider.getValue(); repaint(); if (somethingChanged != nullptr) somethingChanged(); };
 
 	m_BWSpreadLabel.setText("BWSpread", NotificationType::dontSendNotification);
 	m_BWSpreadLabel.setJustificationType(Justification::centred);
@@ -531,7 +584,7 @@ EqoderParameterComponent::EqoderParameterComponent(AudioProcessorValueTreeState&
 	// m_BWSpreadSlider.setTextBoxStyle(Slider::TextEntryBoxPosition::TextBoxBelow, true, 60, 20);
 	m_BWSpreadAttachment = std::make_unique<AudioProcessorValueTreeState::SliderAttachment>(m_vts, paramEqoderBWSpread.ID, m_BWSpreadSlider);
 	addAndMakeVisible(m_BWSpreadSlider);
-	m_BWSpreadSlider.onValueChange = [this]() {if (somethingChanged != nullptr) somethingChanged(); };
+	m_BWSpreadSlider.onValueChange = [this]() {m_BWSpread = m_BWSpreadSlider.getValue(); repaint(); if(somethingChanged != nullptr) somethingChanged(); };
 
 	m_OutGainLabel.setText("OutGain", NotificationType::dontSendNotification);
 	m_OutGainLabel.setJustificationType(Justification::centred);
@@ -549,7 +602,55 @@ EqoderParameterComponent::EqoderParameterComponent(AudioProcessorValueTreeState&
 
 void EqoderParameterComponent::paint(Graphics& g)
 {
+	float scaleFactor = m_scaleFactor;
 	g.fillAll((getLookAndFeel().findColour(ResizableWindow::backgroundColourId)).darker(0.2));
+	g.setColour(JadeTeal);
+	g.fillRect ((EQDISP_XPOS)*scaleFactor, (EQDISP_YPOS)*scaleFactor, (EQDISP_WIDTH)*scaleFactor, (EQDISP_HEIGHT)*scaleFactor);
+	g.setColour(juce::Colours::black);
+	float scaleStart = (EQDISP_XPOS+10);
+	float scaleWidth = (EQDISP_XPOS + EQDISP_WIDTH - 10);
+	float yscaleStart = (EQDISP_YPOS + EQDISP_HEIGHT-10);
+	float yscaleMax = (EQDISP_YPOS+10);
+	float yscaleHeight = -yscaleMax + yscaleStart;
+	juce::Line <float> up(scaleStart*scaleFactor, yscaleStart*scaleFactor,
+							 scaleStart*scaleFactor,yscaleMax*scaleFactor);
+	g.drawArrow(up,3*scaleFactor,10*scaleFactor,20*scaleFactor);
+
+	juce::Line <float> right((EQDISP_XPOS+2)*scaleFactor, yscaleStart*scaleFactor,
+							 scaleWidth*scaleFactor,yscaleStart*scaleFactor);
+	g.drawArrow(right,3*scaleFactor,10*scaleFactor,20*scaleFactor);
+
+	// draw filter
+	g.setColour(JadeRed);
+	
+	float oneoctave = scaleWidth/40; 
+	float oneQ = scaleWidth/150; 
+	for (auto kk = 0; kk < int(m_NrOfFilters); kk++)
+	{
+		// normalised xval
+		float normxval = float(kk)/(m_NrOfFilters-1);
+		if (m_NrOfFilters == 1) // for = 1 and kk = 0 normval is NAN (avoid this here)
+			normxval = 0;
+		float deformed_normx = powf(normxval,m_Form);
+		float gain = (m_gainEnd-m_gainStart)*deformed_normx + m_gainStart;
+		float diffX = oneQ*4*pow(double(kk+1),m_BWSpread)/exp(m_Q);
+		float startX = (scaleStart + kk*oneoctave*pow(2.0,m_FreqSpread))*scaleFactor;
+		float startY = ((yscaleMax+10) + (paramEqoderGainF0.maxValue - gain)/paramEqoderGainF0.maxValue * (yscaleHeight-10))*scaleFactor;
+		float endX = (scaleStart + kk*oneoctave*pow(2.0,m_FreqSpread) - diffX );
+		float endY = (yscaleStart)*scaleFactor;
+		if (endX < EQDISP_XPOS)
+			endX = EQDISP_XPOS;
+		if (endX > EQDISP_XPOS + EQDISP_WIDTH)
+			endX = EQDISP_XPOS + EQDISP_WIDTH;
+		g.drawLine(startX, startY, endX*scaleFactor, endY,3*scaleFactor);
+		endX = (scaleStart + kk*oneoctave*pow(2.0,m_FreqSpread) + diffX );
+		if (endX < EQDISP_XPOS)
+			endX = EQDISP_XPOS;
+		if (endX > EQDISP_XPOS + EQDISP_WIDTH)
+			endX = EQDISP_XPOS + EQDISP_WIDTH;
+		g.drawLine(startX, startY, endX*scaleFactor, endY,3*scaleFactor);
+	}
+	
 
 }
 void EqoderParameterComponent::resized()
@@ -564,7 +665,9 @@ void EqoderParameterComponent::resized()
 	auto s = r;
 	auto t = r;
 
-	t = s.removeFromBottom(scaleFactor*(GLOBAL_MIN_LABEL_HEIGHT/2+GLOBAL_MIN_ROTARY_WIDTH));
+	t = s.removeFromTop(scaleFactor*(GLOBAL_MIN_LABEL_HEIGHT/2+GLOBAL_MIN_ROTARY_WIDTH));
+	// labels are not considered as part of the rotary ==> additional offset necessary
+	t.setY(t.getY()+GLOBAL_MIN_LABEL_HEIGHT*scaleFactor);
 	m_NrOfFilterUnitsSlider.setBounds(t.removeFromLeft(scaleFactor*GLOBAL_MIN_ROTARY_WIDTH));
 	m_NrOfFilterUnitsSlider.setTextBoxStyle(Slider::TextEntryBoxPosition::TextBoxBelow, true,scaleFactor* GLOBAL_MIN_ROTARY_TB_WIDTH, scaleFactor*GLOBAL_MIN_ROTARY_TB_HEIGHT);
 	t.removeFromLeft(scaleFactor*GLOBAL_MIN_DISTANCE);	
@@ -597,7 +700,7 @@ void EqoderParameterComponent::resized()
 	m_BWSpreadSlider.setTextBoxStyle(Slider::TextEntryBoxPosition::TextBoxBelow, true,scaleFactor* GLOBAL_MIN_ROTARY_TB_WIDTH, scaleFactor*GLOBAL_MIN_ROTARY_TB_HEIGHT);
 	t.removeFromLeft(scaleFactor*GLOBAL_MIN_DISTANCE);	
 
-	m_OutGainSlider.setBounds(t.removeFromLeft(scaleFactor*GLOBAL_MIN_ROTARY_WIDTH));
+	m_OutGainSlider.setBounds(t.removeFromRight(scaleFactor*GLOBAL_MIN_ROTARY_WIDTH));
 	m_OutGainSlider.setTextBoxStyle(Slider::TextEntryBoxPosition::TextBoxBelow, true,scaleFactor* GLOBAL_MIN_ROTARY_TB_WIDTH, scaleFactor*GLOBAL_MIN_ROTARY_TB_HEIGHT);
 	t.removeFromLeft(scaleFactor*GLOBAL_MIN_DISTANCE);	
 

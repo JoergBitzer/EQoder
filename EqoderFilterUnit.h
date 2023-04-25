@@ -58,6 +58,8 @@ public:
 	void setInvertOnOff(bool onoff){m_env.setInvertOnOff(onoff);};
 
 private:
+    CriticalSection m_protect;
+
     int m_nrofchannels;
     unsigned int m_nroffilters;
 

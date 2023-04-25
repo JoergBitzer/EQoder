@@ -62,12 +62,13 @@ EQoderFilterUnit::~EQoderFilterUnit()
 }
 void EQoderFilterUnit::reset()
 {
+    m_protect.enter();
     for (auto onefiltervec : m_filters)
     {
         for (auto onefilter : onefiltervec)
             onefilter.reset();
     }
-    
+    m_protect.exit();
 }
 void EQoderFilterUnit::setSamplerate(double fs)
 {
@@ -88,6 +89,8 @@ int EQoderFilterUnit::processData(std::vector<std::vector<double>>& data)
 }
 int EQoderFilterUnit::processData(std::vector<std::vector<double>>& indata,std::vector<std::vector<double>>& outdata)
 {
+    m_protect.enter();
+
     // one envelope for all channels
     m_envdata.resize(indata[0].size());
     m_env.getData(m_envdata);
@@ -100,6 +103,8 @@ int EQoderFilterUnit::processData(std::vector<std::vector<double>>& indata,std::
             m_filters[cc][kk].processDataWithEnvelope(outdata[cc],m_envdata);
         }
     }
+    m_protect.exit();
+
     return 0;
 }
 void EQoderFilterUnit::setNrOfFilters(int nroffilters)
@@ -111,6 +116,8 @@ void EQoderFilterUnit::setNrOfFilters(int nroffilters)
 
 void EQoderFilterUnit::setFundamentalFrequency(double freq, double Velocity)
 {
+    m_protect.enter();
+
     m_f0 = freq;
     checknroffilters();
 
@@ -122,7 +129,11 @@ void EQoderFilterUnit::setFundamentalFrequency(double freq, double Velocity)
     setFilters();
     m_velocity = Velocity;
     m_env.setMaxLevel(m_velocity);
+    m_env.reset();
     m_env.NoteOn();
+    reset();
+    m_protect.exit();
+
 }
 
 void EQoderFilterUnit::setBWSpread(double bwspread)
