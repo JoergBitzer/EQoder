@@ -68,6 +68,12 @@ int  DecoupledPeakEQ::processDataWithEnvelope(std::vector<double>& indata,std::v
         double out = m_state2 + upper2;
         m_state2 = upper1 + m_state1;
         m_state1 = upper1 + out2;
+        
+        if (m_state2>m_maxVal)
+            m_state2 = m_maxVal;
+        
+        if (m_state2 < -m_maxVal)
+            m_state2 = -m_maxVal;
 
         // gain
         outdata[kk] = 0.5*(in + out) + 0.5*(((m_gain-1.0)*envdata[kk])+1.0) *(in - out);
@@ -86,13 +92,13 @@ int  DecoupledPeakEQ::processDataWithEnvelope(std::vector<double>& indata,std::v
         }	
 
 
+    
+        if (fabs(m_state1)>1e7)
+            reset();
+
+        if (fabs(m_state2)>1e7)
+            reset();
     }
-    if (m_state1>1e12)
-        reset();
-
-    if (m_state2>1e12)
-        reset();
-
     return 0;   
 }
 

@@ -44,6 +44,7 @@ public:
     void setBandwidth(double BW_Hz);
     void setFreqency(double newFreq);
     void setSamplerate(double fs);
+    void setMaxVal (double newMax){m_maxVal = newMax;};
 
 private:
     double m_fs; // samplerate
@@ -51,6 +52,7 @@ private:
     double m_gain;
     double m_Q;
     double m_BW;
+    double m_maxVal = 100000;
 
     double m_state1,m_state2;
     double m_k1,m_k2;

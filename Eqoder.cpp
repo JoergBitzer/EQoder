@@ -13,6 +13,7 @@ Eqoder::Eqoder()
 	}
 	m_OutGain = 1.0;
 	m_Parallel = false;
+	m_midifilterunitmap.clear();
 }
 Eqoder::~Eqoder()
 {
@@ -28,19 +29,22 @@ void Eqoder::prepareToPlay (double sampleRate, int samplesPerBlock,int nrofchann
 	m_data.clear();
 	m_InData.clear();
 	m_SumData.clear();
+	m_midifilterunitmap.clear();
 	m_limiter.prepareToPlay(sampleRate,m_nrOfChannels);
 }
 void Eqoder::processBlock (juce::AudioBuffer<float>& data, juce::MidiBuffer& mididata)
 {
     // first analyse Mididata
-	
+	int midicount = 0;
     for (const MidiMessageMetadata metadata : mididata)
     {
 		 if (metadata.numBytes == 3)
 		 {
+		
 			 MidiMessage msg= metadata.getMessage();
 			 if(msg.isNoteOn())
 			 {
+				midicount++;
 				int midiNoteNr = msg.getNoteNumber();
 				float Velocity = 1.0/127.0 * msg.getVelocity();
 				double freqNote = msg.getMidiNoteInHertz(midiNoteNr);
@@ -52,9 +56,11 @@ void Eqoder::processBlock (juce::AudioBuffer<float>& data, juce::MidiBuffer& mid
 				}
 				else
 				{
-					m_unitCounter++;
+									
 					if (m_unitCounter < m_maxunits) // Resources are available
 					{
+
+						
 						m_midifilterunitmap[midiNoteNr] = m_pointerPool.acquire();
 						setParameterForNewFilterUnit(midiNoteNr);
 						m_midifilterunitmap[midiNoteNr]->setFundamentalFrequency(freqNote,Velocity);
@@ -62,7 +68,27 @@ void Eqoder::processBlock (juce::AudioBuffer<float>& data, juce::MidiBuffer& mid
 					else // Steeling
 					{
 						m_unitCounter--;
-						m_midifilterunitmap.erase(m_softestNote);
+						if (m_midifilterunitmap.contains(m_softestNote))
+							m_midifilterunitmap.erase(m_softestNote);
+						else // erase lowest note
+						{
+							int lowestkey = 127;
+							for (const auto& [key, _] : m_midifilterunitmap) 
+							{
+								if (key < lowestkey)
+									lowestkey = key;
+
+								DBG(String(key));
+								DBG(midicount);
+    							//itemKeys.push_back(key);
+								if (key != m_softestNote)
+									DBG("Stop");
+							}
+							m_midifilterunitmap.erase(lowestkey);
+						}
+						DBG(String(m_softestNote) + "-");
+						
+
 						if (!m_pointerPool.empty())
 						{
 							m_midifilterunitmap[midiNoteNr] = m_pointerPool.acquire();
@@ -71,6 +97,7 @@ void Eqoder::processBlock (juce::AudioBuffer<float>& data, juce::MidiBuffer& mid
 						}
 						
 					}
+					m_unitCounter++;
 				}
 			 }
  			 if(msg.isNoteOff())
@@ -113,8 +140,11 @@ void Eqoder::processBlock (juce::AudioBuffer<float>& data, juce::MidiBuffer& mid
 	m_protect.enter();
 	
 	float minLevel = 1.f;
+	float minLevelRelease = 1.f;
 	int notestostop[g_NrOfFilterUnits];
 	int notestopcounter(0);
+	int softnote = -1;
+	int softnoterelease = -1;
 	for (auto onefilterunit : m_midifilterunitmap )
 	{
 		if (m_Parallel)
@@ -139,8 +169,22 @@ void Eqoder::processBlock (juce::AudioBuffer<float>& data, juce::MidiBuffer& mid
 		if (Level< minLevel)
 		{
 			minLevel = Level;
-			m_softestNote = onefilterunit.first;
+			softnote = onefilterunit.first;
 		}
+		if (Level< minLevelRelease & phase != Envelope::envelopePhases::Attack)
+		{
+			minLevelRelease = Level;
+			softnoterelease = onefilterunit.first;
+		}
+		if (minLevelRelease != 1.f)
+		{
+			m_softestNote = softnoterelease;
+		}
+		else
+		{
+			m_softestNote = softnote;
+		}
+
 	}
 	if (m_Parallel)		
 	{
@@ -153,6 +197,12 @@ void Eqoder::processBlock (juce::AudioBuffer<float>& data, juce::MidiBuffer& mid
 
 	for (auto kk = 0 ; kk < notestopcounter; ++kk)
 	{
+		for (const auto& [key, _] : m_midifilterunitmap) 
+		{
+			DBG(String(key) + "key");
+			//itemKeys.push_back(key);
+		}
+		DBG(String(notestostop[kk]) + "notetostop");
 		m_midifilterunitmap.erase(notestostop[kk]);
 		m_unitCounter--;
 	}
@@ -182,7 +232,10 @@ void Eqoder::processBlock (juce::AudioBuffer<float>& data, juce::MidiBuffer& mid
 			}	
         }
 	}
-
+	if (m_midifilterunitmap.size() != m_unitCounter)
+	{
+		DBG("Somethings wrong");
+	}
 }
 
 void Eqoder::updateParameter()
@@ -374,7 +427,7 @@ void EqoderParameter::addParameter(std::vector < std::unique_ptr<RangedAudioPara
 		paramEqoderGainF0.defaultValue,
 		paramEqoderGainF0.unitName,
 		AudioProcessorParameter::genericParameter,
-		[](float value, int MaxLen) { return (String(0.1*int(10.0*value), MaxLen)); },
+		[](float value, int MaxLen) { return (String(0.1*int(10.0*value), MaxLen) + " " + paramEqoderGainF0.unitName); },
 		[](const String& text) {return text.getFloatValue(); }));
 
     	paramVector.push_back(std::make_unique<AudioParameterFloat>(paramEqoderGainFend.ID,
@@ -383,7 +436,7 @@ void EqoderParameter::addParameter(std::vector < std::unique_ptr<RangedAudioPara
 		paramEqoderGainFend.defaultValue,
 		paramEqoderGainFend.unitName,
 		AudioProcessorParameter::genericParameter,
-		[](float value, int MaxLen) { return (String(0.1*int(10.0*value), MaxLen)); },
+		[](float value, int MaxLen) { return (String(0.1*int(10.0*value), MaxLen) + " " + paramEqoderGainF0.unitName); },
 		[](const String& text) {return text.getFloatValue(); }));
 
     	
@@ -429,7 +482,7 @@ void EqoderParameter::addParameter(std::vector < std::unique_ptr<RangedAudioPara
 			paramEqoderOutGain.defaultValue,
 			paramEqoderOutGain.unitName,
 			AudioProcessorParameter::genericParameter,
-			[](float value, int MaxLen) { return (String(int((value) * 4 + 0.5) * 0.25, MaxLen) ); },
+			[](float value, int MaxLen) { return (String(int((value) * 4 + 0.5) * 0.25, MaxLen) + " " + paramEqoderGainF0.unitName); },
 			[](const String& text) {return text.getFloatValue(); }));
 		
 		paramVector.push_back(std::make_unique<AudioParameterFloat>(paramEqoderSwitchParallel.ID,

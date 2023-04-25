@@ -11,6 +11,7 @@
 #include "BrickwallLimiter.h"
 #include "JadeLookAndFeel.h"
 
+
 const int g_NrOfFilterUnits(8);
 const int g_maxChannels(8);
 
