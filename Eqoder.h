@@ -12,7 +12,7 @@
 #include "JadeLookAndFeel.h"
 
 
-const int g_NrOfFilterUnits(8);
+const int g_NrOfFilterUnits(12);
 const int g_maxChannels(8);
 
 class EqoderParameter
@@ -113,7 +113,7 @@ const struct
 	std::string name = "Number of FilterUnits";
 	std::string unitName = "";
 	float minValue = 1.f;
-	float maxValue = 8.f;
+	float maxValue = g_NrOfFilterUnits;
 	float defaultValue = 6.f;
 }paramEqoderNrOfFilterUnits;
 const struct
@@ -128,7 +128,7 @@ const struct
 
 const struct
 {
-	const std::string ID = "GainF0";
+	const std::string ID = "GainStart";
 	std::string name = "Gain at f0";
 	std::string unitName = "dB";
 	float minValue = 0.f;
@@ -138,8 +138,8 @@ const struct
 
 const struct
 {
-	const std::string ID = "GainFend";
-	std::string name = "Gain at fend";
+	const std::string ID = "GainLast";
+	std::string name = "Gain at last";
 	std::string unitName = "dB";
 	float minValue = 0.f;
 	float maxValue = 20.f;

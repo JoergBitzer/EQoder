@@ -520,7 +520,7 @@ EqoderParameterComponent::EqoderParameterComponent(AudioProcessorValueTreeState&
 	addAndMakeVisible(m_NrOfFiltersSlider);
 	m_NrOfFiltersSlider.onValueChange = [this]() {m_NrOfFilters = m_NrOfFiltersSlider.getValue(); repaint(); if (somethingChanged != nullptr) somethingChanged(); };
 
-	m_GainF0Label.setText("GainF0", NotificationType::dontSendNotification);
+	m_GainF0Label.setText("GainFirst", NotificationType::dontSendNotification);
 	m_GainF0Label.setJustificationType(Justification::centred);
 	m_GainF0Label.attachToComponent (&m_GainF0Slider, false);
 	addAndMakeVisible(m_GainF0Label);
@@ -531,7 +531,7 @@ EqoderParameterComponent::EqoderParameterComponent(AudioProcessorValueTreeState&
 	addAndMakeVisible(m_GainF0Slider);
 	m_GainF0Slider.onValueChange = [this]() {m_gainStart = m_GainF0Slider.getValue(); repaint(); if (somethingChanged != nullptr) somethingChanged(); };
 
-	m_GainFendLabel.setText("GainFend", NotificationType::dontSendNotification);
+	m_GainFendLabel.setText("GainLast", NotificationType::dontSendNotification);
 	m_GainFendLabel.setJustificationType(Justification::centred);
 	m_GainFendLabel.attachToComponent (&m_GainFendSlider, false);
 	addAndMakeVisible(m_GainFendLabel);
