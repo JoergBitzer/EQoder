@@ -22,6 +22,49 @@ Produce presets and example files
 
 Produce 4 Videos
 1 how to use (parameter explanation, simple example pink noise)
+
+Drehbuch: 
+
+1. Begrüßung
+Hello, in this video I will show you how to use EQoder an its parameter. Eqoder is in its essence an amplyfiing comb filter playable with midi input.
+
+2. Setting
+For this introduction I will use the PluginHost provided with JUCE. EQoder is an insert 
+effect plugin and needs an audio source. I will use Surge XT. Lets build a simple pink noise with
+very long release phase. This will be our input signal for the start. 
+Surge and EQoder have their own virtual keyboard. Lets use these as a start.
+
+3. Parameter
+
+First we have to define the number of FilterUnits, that is the same as the number of voices for a synthesizer. Monophone is a good starting point. Second we set the number of peak filtersto the maximum of 20 and the gain to a constant of 10dB. High Q setting and Frequency spreading at 1 will guruantee a harmonic output. 
+
+Start the input by playing a note with Surge and now I play a melody on Eqoder. 
+
+Sound example 1 (Short Attack, Short release)
+
+Its sounds like some hollow noisy sound. The envelope of the filter process can be adjusted with these four typical Envelope paramater.
+
+Change to higher release and attack.
+
+Lets now play with the parameters.
+
+Frequency Spread changes the harmonicity Power of twos will lead to harmonic amplification.
+
+change parameter ==> sound
+
+BWSpread will change the bandwidth or Q factor versus frequency. As you can see, every change is displayed, so you see what you do.
+
+This can be used for noisier sounds.
+
+And finally we can change the number and form of our individual gains. 
+
+more audio examples-
+
+
+
+
+
+
 2 shows examples sound design (drum sounds, attack changer, long term modulation)
 3 show examples music modulation (play a melody and play others on EQoder)
 4 how it works
