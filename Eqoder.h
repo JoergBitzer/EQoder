@@ -258,6 +258,6 @@ private:
     std::unique_ptr<AudioProcessorValueTreeState::SliderAttachment> m_OutGainAttachment;
 
     float m_scaleFactor;
-    float m_NrOfFilters, m_gainStart, m_gainEnd, m_Q, m_Form, m_BWSpread, m_FreqSpread;
+    float m_NrOfFilters, m_gainStart, m_gainEnd, m_Q, m_Form, m_BWSpread, m_FreqSpread, m_OutGain;
 
 };
