@@ -503,11 +503,14 @@ EqoderParameterComponent::EqoderParameterComponent(AudioProcessorValueTreeState&
 	m_NrOfFilterUnitsLabel.setJustificationType(Justification::centred);
 	m_NrOfFilterUnitsLabel.attachToComponent (&m_NrOfFilterUnitsSlider, false);
 	addAndMakeVisible(m_NrOfFilterUnitsLabel);
+
 	m_NrOfFilterUnitsSlider.setSliderStyle(Slider::SliderStyle::Rotary);
 	// m_NrOfFiltersSlider.setTextBoxStyle(Slider::TextEntryBoxPosition::TextBoxBelow, true, 60, 20);
 	m_NrOfFilterUnitsAttachment = std::make_unique<AudioProcessorValueTreeState::SliderAttachment>(m_vts, paramEqoderNrOfFilterUnits.ID, m_NrOfFilterUnitsSlider);
 	addAndMakeVisible(m_NrOfFilterUnitsSlider);
 	m_NrOfFilterUnitsSlider.onValueChange = [this]() {if (somethingChanged != nullptr) somethingChanged(); };
+	m_NrOfFilterUnitsSlider.setValue(float(*m_vts.getRawParameterValue(paramEqoderNrOfFilterUnits.ID)));
+
 
 	m_NrOfFiltersLabel.setText("NrOfFilters", NotificationType::dontSendNotification);
 	m_NrOfFiltersLabel.setJustificationType(Justification::centred);
@@ -519,6 +522,8 @@ EqoderParameterComponent::EqoderParameterComponent(AudioProcessorValueTreeState&
 	m_NrOfFiltersAttachment = std::make_unique<AudioProcessorValueTreeState::SliderAttachment>(m_vts, paramEqoderNrOfFilters.ID, m_NrOfFiltersSlider);
 	addAndMakeVisible(m_NrOfFiltersSlider);
 	m_NrOfFiltersSlider.onValueChange = [this]() {m_NrOfFilters = m_NrOfFiltersSlider.getValue(); repaint(); if (somethingChanged != nullptr) somethingChanged(); };
+	m_NrOfFiltersSlider.setValue(float(*m_vts.getRawParameterValue(paramEqoderNrOfFilters.ID)));
+
 
 	m_GainF0Label.setText("GainFirst", NotificationType::dontSendNotification);
 	m_GainF0Label.setJustificationType(Justification::centred);
@@ -530,6 +535,7 @@ EqoderParameterComponent::EqoderParameterComponent(AudioProcessorValueTreeState&
 	m_GainF0Attachment = std::make_unique<AudioProcessorValueTreeState::SliderAttachment>(m_vts, paramEqoderGainF0.ID, m_GainF0Slider);
 	addAndMakeVisible(m_GainF0Slider);
 	m_GainF0Slider.onValueChange = [this]() {m_gainStart = m_GainF0Slider.getValue(); repaint(); if (somethingChanged != nullptr) somethingChanged(); };
+	m_GainF0Slider.setValue(float(*m_vts.getRawParameterValue(paramEqoderGainF0.ID)));
 
 	m_GainFendLabel.setText("GainLast", NotificationType::dontSendNotification);
 	m_GainFendLabel.setJustificationType(Justification::centred);
@@ -541,6 +547,7 @@ EqoderParameterComponent::EqoderParameterComponent(AudioProcessorValueTreeState&
 	m_GainFendAttachment = std::make_unique<AudioProcessorValueTreeState::SliderAttachment>(m_vts, paramEqoderGainFend.ID, m_GainFendSlider);
 	addAndMakeVisible(m_GainFendSlider);
 	m_GainFendSlider.onValueChange = [this]() {m_gainEnd = m_GainFendSlider.getValue(); repaint(); if (somethingChanged != nullptr) somethingChanged(); };
+	m_GainFendSlider.setValue(float(*m_vts.getRawParameterValue(paramEqoderGainFend.ID)));
 
 	m_GainFormLabel.setText("GainForm", NotificationType::dontSendNotification);
 	m_GainFormLabel.setJustificationType(Justification::centred);
@@ -552,6 +559,7 @@ EqoderParameterComponent::EqoderParameterComponent(AudioProcessorValueTreeState&
 	m_GainFormAttachment = std::make_unique<AudioProcessorValueTreeState::SliderAttachment>(m_vts, paramEqoderGainForm.ID, m_GainFormSlider);
 	addAndMakeVisible(m_GainFormSlider);
 	m_GainFormSlider.onValueChange = [this]() {m_Form = m_GainFormSlider.getValue(); repaint(); if(somethingChanged != nullptr) somethingChanged(); };
+	m_GainFormSlider.setValue(float(*m_vts.getRawParameterValue(paramEqoderGainForm.ID)));
 
 	m_QLabel.setText("Q", NotificationType::dontSendNotification);
 	m_QLabel.setJustificationType(Justification::centred);
@@ -563,6 +571,7 @@ EqoderParameterComponent::EqoderParameterComponent(AudioProcessorValueTreeState&
 	m_QAttachment = std::make_unique<AudioProcessorValueTreeState::SliderAttachment>(m_vts, paramEqoderQ.ID, m_QSlider);
 	addAndMakeVisible(m_QSlider);
 	m_QSlider.onValueChange = [this]() {m_Q = m_QSlider.getValue(); repaint(); if (somethingChanged != nullptr) somethingChanged(); };
+	m_QSlider.setValue(float(*m_vts.getRawParameterValue(paramEqoderQ.ID)));
 
 	m_FreqSpreadLabel.setText("FreqSpread", NotificationType::dontSendNotification);
 	m_FreqSpreadLabel.setJustificationType(Justification::centred);
@@ -574,11 +583,13 @@ EqoderParameterComponent::EqoderParameterComponent(AudioProcessorValueTreeState&
 	m_FreqSpreadAttachment = std::make_unique<AudioProcessorValueTreeState::SliderAttachment>(m_vts, paramEqoderFreqSpread.ID, m_FreqSpreadSlider);
 	addAndMakeVisible(m_FreqSpreadSlider);
 	m_FreqSpreadSlider.onValueChange = [this]() {m_FreqSpread = m_FreqSpreadSlider.getValue(); repaint(); if (somethingChanged != nullptr) somethingChanged(); };
+	m_FreqSpreadSlider.setValue(float(*m_vts.getRawParameterValue(paramEqoderFreqSpread.ID)));
 
 	m_BWSpreadLabel.setText("BWSpread", NotificationType::dontSendNotification);
 	m_BWSpreadLabel.setJustificationType(Justification::centred);
 	m_BWSpreadLabel.attachToComponent (&m_BWSpreadSlider, false);
 	addAndMakeVisible(m_BWSpreadLabel);
+	m_BWSpreadSlider.setValue(float(*m_vts.getRawParameterValue(paramEqoderBWSpread.ID)));
 
 	m_BWSpreadSlider.setSliderStyle(Slider::SliderStyle::Rotary);
 	// m_BWSpreadSlider.setTextBoxStyle(Slider::TextEntryBoxPosition::TextBoxBelow, true, 60, 20);
@@ -595,7 +606,8 @@ EqoderParameterComponent::EqoderParameterComponent(AudioProcessorValueTreeState&
 	// m_OutGainSlider.setTextBoxStyle(Slider::TextEntryBoxPosition::TextBoxBelow, true, 60, 20);
 	m_OutGainAttachment = std::make_unique<AudioProcessorValueTreeState::SliderAttachment>(m_vts, paramEqoderOutGain.ID, m_OutGainSlider);
 	addAndMakeVisible(m_OutGainSlider);
-	m_OutGainSlider.onValueChange = [this]() {if (somethingChanged != nullptr) somethingChanged(); };
+	m_OutGainSlider.onValueChange = [this]() {m_OutGain = m_OutGainSlider.getValue(); repaint(); if (somethingChanged != nullptr) somethingChanged(); };
+	m_OutGainSlider.setValue(float(*m_vts.getRawParameterValue(paramEqoderOutGain.ID)));
 
 
 }
