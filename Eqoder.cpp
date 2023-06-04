@@ -68,7 +68,7 @@ void Eqoder::processBlock (juce::AudioBuffer<float>& data, juce::MidiBuffer& mid
 					else // Steeling
 					{
 						m_unitCounter--;
-						if (m_midifilterunitmap.contains(m_softestNote))
+						if (m_midifilterunitmap.count(m_softestNote) == 0)
 							m_midifilterunitmap.erase(m_softestNote);
 						else // erase lowest note
 						{
