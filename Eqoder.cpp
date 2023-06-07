@@ -78,15 +78,15 @@ void Eqoder::processBlock (juce::AudioBuffer<float>& data, juce::MidiBuffer& mid
 								if (key < lowestkey)
 									lowestkey = key;
 
-								DBG(String(key));
-								DBG(midicount);
+								//DBG(String(key));
+								//DBG(midicount);
     							//itemKeys.push_back(key);
-								if (key != m_softestNote)
-									DBG("Stop");
+								//if (key != m_softestNote)
+								//	DBG("Stop");
 							}
 							m_midifilterunitmap.erase(lowestkey);
 						}
-						DBG(String(m_softestNote) + "-");
+						//DBG(String(m_softestNote) + "-");
 						
 
 						if (!m_pointerPool.empty())
@@ -197,12 +197,12 @@ void Eqoder::processBlock (juce::AudioBuffer<float>& data, juce::MidiBuffer& mid
 
 	for (auto kk = 0 ; kk < notestopcounter; ++kk)
 	{
-		for (const auto& [key, _] : m_midifilterunitmap) 
-		{
-			DBG(String(key) + "key");
+		//for (const auto& [key, _] : m_midifilterunitmap) 
+		//{
+		//	DBG(String(key) + "key");
 			//itemKeys.push_back(key);
-		}
-		DBG(String(notestostop[kk]) + "notetostop");
+		//}
+		//DBG(String(notestostop[kk]) + "notetostop");
 		m_midifilterunitmap.erase(notestostop[kk]);
 		m_unitCounter--;
 	}
@@ -211,31 +211,31 @@ void Eqoder::processBlock (juce::AudioBuffer<float>& data, juce::MidiBuffer& mid
 	
 	m_protect.exit();
         
-	for (long unsigned int channel = 0; channel < totalNrChannels; ++channel)
-	{
-        auto* channelData = data.getWritePointer (channel);
+	// for (long unsigned int channel = 0; channel < totalNrChannels; ++channel)
+	// {
+    //     auto* channelData = data.getWritePointer (channel);
 		
-		for (auto idx = 0; idx < data.getNumSamples(); idx++)
-        {
-            channelData[idx] = m_data[channel][idx];
-			if (!std::isfinite(channelData[idx] ))
-			{
-				switch(std::fpclassify(channelData[idx])) 
-				{
-        			case FP_INFINITE:  DBG( "Inf");break;
-        			case FP_NAN:       DBG( "NaN");break;
-        			case FP_NORMAL:    DBG( "normal");break;
-        			case FP_SUBNORMAL: DBG( "subnormal");break;
-        			case FP_ZERO:      DBG( "zero");break;
-        			default:           DBG( "unknown");break;
-    			}
-			}	
-        }
-	}
-	if (m_midifilterunitmap.size() != m_unitCounter)
-	{
-		DBG("Somethings wrong");
-	}
+	// 	for (auto idx = 0; idx < data.getNumSamples(); idx++)
+    //     {
+    //         channelData[idx] = m_data[channel][idx];
+	// 		if (!std::isfinite(channelData[idx] ))
+	// 		{
+	// 			switch(std::fpclassify(channelData[idx])) 
+	// 			{
+    //     			case FP_INFINITE:  DBG( "Inf");break;
+    //     			case FP_NAN:       DBG( "NaN");break;
+    //     			case FP_NORMAL:    DBG( "normal");break;
+    //     			case FP_SUBNORMAL: DBG( "subnormal");break;
+    //     			case FP_ZERO:      DBG( "zero");break;
+    //     			default:           DBG( "unknown");break;
+    // 			}
+	// 		}	
+    //     }
+	// }
+//	if (m_midifilterunitmap.size() != m_unitCounter)
+//	{
+//		DBG("Somethings wrong");
+//	}
 }
 
 void Eqoder::updateParameter()
