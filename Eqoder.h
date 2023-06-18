@@ -12,7 +12,7 @@
 #include "JadeLookAndFeel.h"
 
 
-const int g_NrOfFilterUnits(12);
+const int g_NrOfFilterUnits(24);
 const int g_maxChannels(8);
 
 class EqoderParameter

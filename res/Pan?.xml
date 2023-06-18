@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<EquoderVTS presetname="Pan?" bank="User" version="0.0.1" category="Unknown">
+  <PARAM id="BWSpread" value="0.7458188533782959"/>
+  <PARAM id="Env1Attack" value="5.010634899139404"/>
+  <PARAM id="Env1Decay" value="5.010635375976562"/>
+  <PARAM id="Env1Delay" value="0.0"/>
+  <PARAM id="Env1Hold" value="0.0"/>
+  <PARAM id="Env1Invert" value="0.0"/>
+  <PARAM id="Env1Level" value="1.0"/>
+  <PARAM id="Env1Release" value="5.010635375976562"/>
+  <PARAM id="Env1Sustain" value="1.0"/>
+  <PARAM id="FreqSpread" value="1.079962968826294"/>
+  <PARAM id="GainF0" value="6.0"/>
+  <PARAM id="GainFend" value="6.0"/>
+  <PARAM id="GainForm" value="1.0"/>
+  <PARAM id="NrOfFilterUnits" value="8.922863006591797"/>
+  <PARAM id="NrOfFilters" value="19.64219093322754"/>
+  <PARAM id="OutGain" value="-16.80506134033203"/>
+  <PARAM id="Q" value="3.688879489898682"/>
+  <PARAM id="SwitchParallel" value="0.0"/>
+  <PARAM id="GainLast"/>
+  <PARAM id="GainStart" value="19.7152156829834"/>
+</EquoderVTS>

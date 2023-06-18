@@ -85,13 +85,24 @@ target_compile_definitions(AudioPluginEQoder
 # static library. These source files can be of any kind (wav data, images, fonts, icons etc.).
 # Conversion to binary-data will happen when your target is built.
 
+file(GLOB EQODER_RESOURCES_GLOB
+  res/*.xml
+  )
+
+
 juce_add_binary_data(AudioPluginEQoder-binary 
                     SOURCES 
                         images/LogoJadeHochschule.jpg 
                         images/Title.png
                         images/LogoJadeHochschuleTrans.png
-                        images/AboutBox.png)
-
+                        images/AboutBox.png
+                        ${EQODER_RESOURCES_GLOB}
+                        )
+if( UNIX AND NOT APPLE )
+set_target_properties(AudioPluginEQoder-binary PROPERTIES
+    POSITION_INDEPENDENT_CODE TRUE)
+endif()
+                        
 # `target_link_libraries` links libraries and JUCE modules to other libraries or executables. Here,
 # we're linking our executable target to the `juce::juce_audio_utils` module. Inter-module
 # dependencies are resolved automatically, so `juce_core`, `juce_events` and so on will also be
@@ -101,17 +112,6 @@ juce_add_binary_data(AudioPluginEQoder-binary
 
 
 # use this code for binaries (e.g. presets)
-#file(GLOB TEMPLATE_RESOURCES_GLOB
-#  res/*.xml
-#  )
-
-#juce_add_binary_data( AudioPluginEQoder-binary
-#  SOURCES ${TEMPLATE_RESOURCES_GLOB}
-#)
-#if( UNIX AND NOT APPLE )
-#set_target_properties(AudioPluginEQoder-binary PROPERTIES
-#    POSITION_INDEPENDENT_CODE TRUE)
-#endif()
 
 
 

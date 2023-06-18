@@ -68,6 +68,7 @@ void EQoderFilterUnit::reset()
         for (auto onefilter : onefiltervec)
             onefilter.reset();
     }
+    //m_env.reset();
     m_protect.exit();
 }
 void EQoderFilterUnit::setSamplerate(double fs)

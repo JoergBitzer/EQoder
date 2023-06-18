@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<EquoderVTS presetname="slow modulation" bank="User" version="0.0.1" category="Unknown">
+  <PARAM id="BWSpread" value="0.07612264156341553"/>
+  <PARAM id="Env1Attack" value="7.53516149520874"/>
+  <PARAM id="Env1Decay" value="8.197402954101562"/>
+  <PARAM id="Env1Delay" value="0.0"/>
+  <PARAM id="Env1Hold" value="0.0"/>
+  <PARAM id="Env1Invert" value="0.0"/>
+  <PARAM id="Env1Level" value="1.0"/>
+  <PARAM id="Env1Release" value="8.287487030029297"/>
+  <PARAM id="Env1Sustain" value="1.0"/>
+  <PARAM id="FreqSpread" value="0.9679050445556641"/>
+  <PARAM id="GainF0" value="6.0"/>
+  <PARAM id="GainFend" value="6.0"/>
+  <PARAM id="GainForm" value="1.988722562789917"/>
+  <PARAM id="NrOfFilterUnits" value="12.0"/>
+  <PARAM id="NrOfFilters" value="18.84739112854004"/>
+  <PARAM id="OutGain" value="-29.55952072143555"/>
+  <PARAM id="Q" value="2.334907054901123"/>
+  <PARAM id="SwitchParallel" value="0.0"/>
+  <PARAM id="GainLast" value="0.0"/>
+  <PARAM id="GainStart" value="15.37994480133057"/>
+</EquoderVTS>

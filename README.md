@@ -29,50 +29,60 @@ Drehbuch:
 Hello, in this video I will show you how to use EQoder an its parameter. Eqoder is in its essence an amplyfiing comb filter playable with midi input.
 
 2. Setting
-For this introduction I will use the PluginHost provided with JUCE. EQoder is an insert 
-effect plugin and needs an audio source. I will use Surge XT. Lets build a simple pink noise with
-very long release phase. This will be our input signal for the start. 
-Surge and EQoder have their own virtual keyboard. Lets use these as a start.
+For this introduction I will use the PluginHost provided by JUCE. EQoder is an insert 
+effect plugin and needs an audio source. We will use Surge. Lets build a simple pink noise with a
+very long release phase. This will be our input signal for this video. 
+Surge and EQoder have their own virtual keyboard. Lets use these for the beginning.
 
 3. Parameter
+Eqoder has several parameters and I will explain their usage first.
 
-First we have to define the number of FilterUnits, that is the same as the number of voices for a synthesizer. One is a good starting point to show the effect. Second we set the number of peak filters to the maximum of 20 and the gain to a constant of 10dB. High Q setting and Frequency spreading at 1 will guruantee a harmonic output. 
+First we have to define the number of FilterUnits, that is equivalent to the number of voices for a synthesizer. One is a good starting point to show the effect. Second we set the number of peak filters to the maximum of 20 and the gain to a constant of 10dB. High Q setting and Frequency spreading at one will guarantee a harmonic output. 
 
-Start the input by playing a note with Surge and now I play a melody on Eqoder. 
+We start the input signal by playing a note with Surge and we hear noise only and now I can play a melody with Eqoder. 
 
-Sound example 1 (Short Attack, Short release)
+[ Sound example 1 (Short Attack, Short release) ]
 
-Its sounds like some hollow noisy sound. The envelope of the filter process can be adjusted with these four typical Envelope paramater.
+This sounds like some hollow noisy sound. The envelope of the filter process can be adjusted with these four typical Envelope parameters. With softer attack and release times, we should increase the number of filter units. 
 
-Change to higher release and attack.
+[ Change to higher release and attack  ]
 
-Lets now play with the parameters.
+We can play chords as well now.
+
+[Play some chords]
+
+Lets see what the other parameters do.
 
 Frequency Spread changes the harmonicity. All Power of twos (0.5, 1, 2) will lead to harmonic amplification. 
+Listen to the different color of the sound.
 
 change parameter ==> sound
 
-BWSpread will change the bandwidth or Q factor versus frequency. As you can see, every change is displayed, so you see what you do.
+BWSpread will change the bandwidth or Q factor versus frequency. With higher values the higher filter become less steep.
+As you can see, every change is displayed, so you see what you do. However, this is not the actual transfer function.
 
-This can be used for noisier sounds.
+Higher settings can be used for noisier sounds.
 
 And finally we can change the number and form of our individual gains. 
 
-more audio examples-
+[ more audio examples ]
+
+I hope you know have a fist impression what Eqoder can do. In the next video, I will show you, how to use Eqoder as 
+a sound design tool.
 
 
-2 shows examples sound design (drum sounds, attack changer, long term modulation)h drum 
+## 2 shows examples sound design (drum sounds, attack changer, long term modulation)h drum 
 
 In this video I will show you one possible way to use Eqoder as a sound design tool. It acts like another filter module in your favourite synth. 
 
 Lets start with some drum and percussion sounds. The source audio is pink noise from Surge XT. But this time we will use the envelope and adapt it to the desired sound.
 
-we use the same midi keyboard as input.
+we use the same midi keyboard as input. You can see the routing here.
 
 Test some sounds
 
 
-3 show examples music modulation (play a melody and play others on EQoder)
+## 3 show examples music modulation (play a melody and play others on EQoder)
 
 In this video I will show you another way to use Eqoder. For this application we need our audio workstation. For me  this is Cubase, but more or less all will work.
 
