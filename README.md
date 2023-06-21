@@ -86,12 +86,28 @@ Test some sounds
 
 In this video I will show you another way to use Eqoder. For this application we need our audio workstation. For me  this is Cubase, but more or less all will work.
 
-Lets start with a short, kind of slowly melody. The instrument needs to be rich in sound or a little noisy. Ok nice enoough. Lets record something.
+Lets start with a short, kind of slowly melody. The instrument nes to be rich in sound or a little noisy. Ok nice enoough. Lets record something.
 
 And now we modulate this signal with another melody on top of its own sound with Eqoder.
 
 
-4 how it works
+## 4 how it works
+In this video, I will show you the internals of EQoder. This is mostly digital signal processing basics with some small tricks.
+Lets start with the basics.  Eqoder is a cascade of peak filter: one filter after the next. Each filter is a second order filter but not in the typical implementation of direct form 1 or 2. From the beginning  I knew each filter is time-variant. We change the frequency by playing the keyboard and each filter has its own envelope. Of course you could design new filter coefficients for each change, but this is not very efficient. 
+Instead I used a so-called decoupled allpass structure, which was presented by Regalia and Mitra in their paper
+"Tunable Digital Frequency Response Equalization Filters"
+
+The main disadvantage of this structure is that it is not symmetric if you amplify of reduce the gain at a given frequency. 
+But this is no problem for EQoder, since I will only amplify the signal. 
+Now to the main advantage. This filter is really decoupled. What does that mean? Each parameter, gain, frequency and Q factor is one coefficient in the internal structure. You don't compute any other parameter. And the internal allpass structure has several other advantages for example a very easy test for stability.
+
+So the internal structure looks like this. 
+
+
+
+
+
+
 The technical background (only for the nerds)
 
 
